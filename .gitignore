@@ -1,0 +1,18 @@
+# Node
+node_modules/
+
+# Rust / Tauri build output
+target/
+src-tauri/target/
+dist/
+build/
+src-tauri/WixTools/
+
+# Backup files
+*.bak
+
+# Claude Code ephemeral session logs
+.claude/session-logs/
+
+# Obsidian per-machine workspace state
+.obsidian/workspace.json

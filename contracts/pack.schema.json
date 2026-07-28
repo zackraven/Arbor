@@ -1,0 +1,302 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arbor.dev/schemas/pack/v1",
+  "title": "Pack",
+  "description": "A fully-authored node pack produced at Stage 5 of the Arbor build pipeline and consumed by the teaching runtime.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "node_id",
+    "overview",
+    "segments",
+    "templates",
+    "diagnostic",
+    "summary_for_context"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1,
+      "description": "Schema version; must be 1 for this contract."
+    },
+    "node_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*[a-z0-9]$",
+      "description": "Kebab-case slug matching node.id in the SQLite graph."
+    },
+    "overview": {
+      "$ref": "#/$defs/Overview"
+    },
+    "segments": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/Segment" },
+      "description": "Teaching segments in topological order."
+    },
+    "templates": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/QuestionTemplate" },
+      "description": "Parameterised question templates for custom tests and FSRS cards. At least one per difficulty level (easy/medium/hard) — invariant enforced by the pack loader, not this schema."
+    },
+    "diagnostic": {
+      "type": "array",
+      "minItems": 10,
+      "items": { "$ref": "#/$defs/DiagnosticItem" },
+      "description": "Diagnostic bank: ≥10 items, each mapped to outcome_refs. The runtime draws exactly 10 per attempt, sampling across outcomes. Bank size > 10 prevents verbatim repeats across test-out and retakes."
+    },
+    "summary_for_context": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 800,
+      "description": "Compact node summary injected into the cheap teaching-model context. Hard cap: 800 characters."
+    },
+    "addenda": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/Addendum" },
+      "description": "Numbered repair addenda appended after authoring. Empty array on initial authoring."
+    }
+  },
+  "$defs": {
+    "Overview": {
+      "type": "object",
+      "required": ["summary_for_learner", "outline", "assumed_children"],
+      "additionalProperties": false,
+      "properties": {
+        "summary_for_learner": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Human-readable overview shown before teaching begins."
+        },
+        "outline": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" },
+          "description": "Bullet-point outline of what will be taught."
+        },
+        "assumed_children": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "node_id values of prerequisite children assumed completed."
+        }
+      }
+    },
+    "Segment": {
+      "type": "object",
+      "required": [
+        "id",
+        "intent",
+        "question",
+        "expected_paths",
+        "hint_ladder",
+        "resolution",
+        "quick_checks"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]*[a-z0-9]$"
+        },
+        "intent": {
+          "type": "string",
+          "minLength": 1,
+          "description": "What understanding this segment builds."
+        },
+        "question": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The Socratic question posed to the learner. KaTeX-renderable."
+        },
+        "expected_paths": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/ExpectedPath" },
+          "description": "Classifier paths. Invariant (code-enforced): at least one path has is_misconception: true."
+        },
+        "hint_ladder": {
+          "type": "array",
+          "minItems": 4,
+          "items": { "$ref": "#/$defs/HintStep" },
+          "description": "Hint sequence in ascending support: probe → nudge → near-answer → tell. Invariant (code-enforced): last step must have level: 'tell'. Floor guarantee: learner can never be permanently stuck."
+        },
+        "resolution": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Scripted resolution delivered after a correct answer or after 'tell'."
+        },
+        "quick_checks": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/QuickCheck" },
+          "description": "Short comprehension checks after the resolution."
+        }
+      }
+    },
+    "ExpectedPath": {
+      "type": "object",
+      "required": ["label", "classifier_hint", "response", "is_misconception"],
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Short label for this answer category (e.g., 'correct', 'sign-error')."
+        },
+        "classifier_hint": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Natural-language hint for the cheap classifier model."
+        },
+        "response": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Scripted response delivered when this path is matched."
+        },
+        "is_misconception": {
+          "type": "boolean",
+          "description": "True when this path represents a misconception that needs addressing."
+        }
+      }
+    },
+    "HintStep": {
+      "type": "object",
+      "required": ["level", "text"],
+      "additionalProperties": false,
+      "properties": {
+        "level": {
+          "type": "string",
+          "enum": ["probe", "nudge", "near-answer", "tell"],
+          "description": "Severity level. 'tell' is mandatory as the final step (code-enforced)."
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "QuickCheck": {
+      "type": "object",
+      "required": ["question", "expected_answer"],
+      "additionalProperties": false,
+      "properties": {
+        "question": { "type": "string", "minLength": 1 },
+        "expected_answer": { "type": "string", "minLength": 1 }
+      }
+    },
+    "QuestionTemplate": {
+      "type": "object",
+      "required": ["id", "stem", "answer_expr", "marking_notes", "difficulty"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]*[a-z0-9]$"
+        },
+        "stem": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Question text; KaTeX-renderable. May contain {param_name} placeholders."
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/ParamSpec" },
+          "description": "Named parameter ranges for re-rolling. Omit for non-parameterised templates."
+        },
+        "answer_expr": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Sympy-parseable expression. May reference parameter names. Example: 'a**2 + b**2'."
+        },
+        "marking_notes": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Guidance for the strong model when judging free-form conceptual answers."
+        },
+        "difficulty": {
+          "type": "string",
+          "enum": ["easy", "medium", "hard"]
+        }
+      }
+    },
+    "ParamSpec": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["integer", "float"]
+        },
+        "min": { "type": "number" },
+        "max": { "type": "number" },
+        "exclude_zero": { "type": "boolean" }
+      }
+    },
+    "DiagnosticItem": {
+      "type": "object",
+      "required": ["id", "question", "expected_answer", "outcome_refs"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]*[a-z0-9]$"
+        },
+        "question": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expected_answer": {
+          "type": "string",
+          "minLength": 1
+        },
+        "is_parameterized": {
+          "type": "boolean",
+          "description": "True when answer_expr and param_seed are used instead of expected_answer for checking."
+        },
+        "param_seed": {
+          "type": "integer",
+          "description": "Seed for parameter re-roll; only present when is_parameterized: true."
+        },
+        "answer_expr": {
+          "type": "string",
+          "description": "Sympy expression; only present when is_parameterized: true."
+        },
+        "outcome_refs": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" },
+          "description": "Outcome identifiers (from node.outcomes_json) this item tests."
+        }
+      }
+    },
+    "Addendum": {
+      "type": "object",
+      "required": ["id", "date", "reason", "content"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^add-[0-9]{3}$",
+          "description": "Sequential addendum ID: add-001, add-002, …"
+        },
+        "date": {
+          "type": "string",
+          "format": "date",
+          "description": "ISO 8601 date of the addendum."
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Why this addendum was written (repair report reference)."
+        },
+        "content": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The addendum content; injected alongside the original segment."
+        }
+      }
+    }
+  }
+}
