@@ -1,0 +1,27 @@
+{
+  "name": "arbor",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tauri dev",
+    "build": "tauri build",
+    "test": "vitest run",
+    "lint": "tsc --noEmit && cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings"
+  },
+  "dependencies": {
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@tauri-apps/api": "2.11.1",
+    "@tauri-apps/cli": "2.11.4",
+    "@types/node": "26.1.2",
+    "@types/react": "18.3.31",
+    "@types/react-dom": "18.3.7",
+    "@vitejs/plugin-react": "6.0.5",
+    "typescript": "7.0.2",
+    "vite": "8.2.0",
+    "vitest": "4.1.10"
+  }
+}
