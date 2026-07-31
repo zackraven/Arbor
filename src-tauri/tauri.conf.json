@@ -4,9 +4,9 @@
   "version": "0.1.0",
   "identifier": "dev.arbor.app",
   "build": {
-    "beforeDevCommand": "pnpm dev",
+    "beforeDevCommand": "vite",
     "devUrl": "http://localhost:5173",
-    "beforeBuildCommand": "pnpm build",
+    "beforeBuildCommand": "vite build",
     "frontendDist": "../dist"
   },
   "app": {
