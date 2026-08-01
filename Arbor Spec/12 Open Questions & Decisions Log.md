@@ -138,3 +138,21 @@ Three policy decisions implemented this session, all arising from T-001 and T-00
 3. **Automated-observation clause added to Rule 5** of `.claude/skills/write-ticket/SKILL.md`: Phase 3+ UI tickets must use `pnpm observe` for visual AC, not `[manual]`. Exceptions: T-005 itself and non-visual tickets.
 
 Files changed: `.claude/hooks/contract-shield.sh`, `.claude/hooks/spec-shield.sh`, `tests/T-004/contract-shield-smoke.sh`, `.claude/skills/write-ticket/SKILL.md`.
+
+**2026-08-01 — Hook exit-code correction: jq fail-closed path changed from exit 1 to exit 0.** {#hook-exit-code-fix-2026-08-01}
+
+The 2026-07-31 policy-decisions entry ("jq fail-closed") stated that the shields "exit 1" on the jq-missing path, and note 24 §Guardrail verification protocol rule 3 carried the same wording. Both descriptions were wrong. Per the Claude Code hook documentation:
+
+| Exit code | JSON stdout | Effect |
+|-----------|-------------|--------|
+| **0** | processed | `permissionDecision:"deny"` is honoured — **deny takes effect** |
+| **1** (or other non-zero ≠ 2) | ignored | non-blocking error; tool call proceeds — **fails open** |
+| **2** | ignored | tool call blocked; stderr message surfaced to Claude |
+
+The shields were emitting the correct deny JSON then exiting 1, so Claude Code was discarding the JSON and allowing every tool call through when jq was absent — the exact opposite of fail-closed. Fixed to `exit 0` in both `contract-shield.sh` and `spec-shield.sh`.
+
+Smoke test blind spot: `run_hook_no_jq` in `tests/T-004/contract-shield-smoke.sh` asserted only the JSON output, not the hook's exit code, so the test passed even while the shields were failing open. Fixed: the helper now captures and outputs the exit code as a first line; both jq-missing test cases assert `exit 0` explicitly via `mapfile` + `[[ "$NO_JQ_EXIT" -eq 0 ]]`.
+
+Note 24 §Guardrail verification protocol rule 3 ("exit 1, not fail open (exit 0)") is superseded by this entry. The correct phrasing: "exit 0 with JSON deny" is fail-closed; "exit 1" is fail-open.
+
+Files changed: `.claude/hooks/contract-shield.sh`, `.claude/hooks/spec-shield.sh`, `tests/T-004/contract-shield-smoke.sh`, `Arbor Spec/12 Open Questions & Decisions Log.md`.

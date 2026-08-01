@@ -1,7 +1,7 @@
 ---
 id: T-004
 phase: 0
-status: queued
+status: done
 depends_on: []
 ---
 
@@ -66,4 +66,17 @@ The .claude/ directory contains the three subagent definitions, five hooks, and 
 
 ## Implementation notes
 
+Bootstrap exception — tooling cannot install itself, so an architect session created all files directly (2026-07-23 decisions-log entry `{#tooling-initial-2026-07-23}`). Subsequent architect sessions hardened the tooling:
+
+- **2026-07-23** `{#hook-scope-fix-2026-07-23}`: shields moved to `settings.json` (were scoped to agent files only); ARBOR_ROLE architect gate added; Bash write-verb detection added.
+- **2026-07-31** `{#policy-decisions-2026-07-31}`: jq fail-closed path added to both shields; new smoke-test cases added.
+- **2026-08-01** `{#hook-exit-code-fix-2026-08-01}`: jq fail-closed exit code corrected (exit 1 → exit 0); smoke test now asserts exit code; allow-list bypass cases added; permissions allow-list added to `settings.json`; role launcher scripts added to `tools/`.
+
+All acceptance criteria pass: `bash tests/T-004/contract-shield-smoke.sh` exits 0 (30/30 cases).
+
 ## Verification
+
+Verification: pass — 2026-08-01 (architect bootstrap exception; no separate verifier session)
+- tests/T-004/contract-shield-smoke.sh: 30/30 passed
+- Structure and hook wiring confirmed across multiple architect sessions
+- Out-of-scope: no violations

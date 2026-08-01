@@ -24,7 +24,7 @@ fi
 # If jq is absent, deny every operation rather than fail open.
 if ! command -v jq &>/dev/null; then
     printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"contract-shield: jq not found -- failing closed to protect contracts. Install jq to proceed."}}\n'
-    exit 1
+    exit 0
 fi
 
 INPUT=$(cat)

@@ -201,13 +201,18 @@ _path_without_jq() {
 }
 
 # Run the hook with jq removed from PATH; parse output with grep (not jq).
+# Outputs two lines: the hook's exit code, then "deny" or "allow".
+# A deny is only effective when exit 0 (Claude Code only processes JSON on exit 0;
+# exit 1 is non-blocking and causes the tool call to proceed — fails open).
 # ARBOR_ROLE is explicitly cleared so the architect gate does not bypass the check.
 run_hook_no_jq() {
     local file_path="$1"
-    local output
+    local output exit_code
+    # || captures non-zero exit without triggering set -e
     output=$(ARBOR_ROLE="" PATH="$(_path_without_jq)" bash "$SCRIPT" \
         <<< "{\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"${file_path}\"}}" \
-        2>/dev/null)
+        2>/dev/null) && exit_code=0 || exit_code=$?
+    printf '%d\n' "$exit_code"
     if echo "$output" | grep -qE '"permissionDecision"[[:space:]]*:[[:space:]]*"deny"'; then
         echo "deny"
     else
@@ -216,14 +221,38 @@ run_hook_no_jq() {
 }
 
 # Protected path: must be denied (fail-closed).
-RESULT=$(run_hook_no_jq "contracts/schema.sql")
+mapfile -t _out < <(run_hook_no_jq "contracts/schema.sql")
+NO_JQ_EXIT="${_out[0]:-1}"; RESULT="${_out[1]:-allow}"
 [[ "$RESULT" == "deny" ]] || fail "jq-missing + contracts/schema.sql should be denied (fail-closed), got: $RESULT"
-pass "jq-missing: Edit contracts/schema.sql → deny (fail-closed)"
+[[ "$NO_JQ_EXIT" -eq 0 ]] || fail "jq-missing + contracts/schema.sql: hook must exit 0 (got $NO_JQ_EXIT) — exit 1 is non-blocking; Claude Code ignores JSON and fails open"
+pass "jq-missing: Edit contracts/schema.sql → deny (fail-closed, exit 0)"
 
 # Unprotected path: must also be denied when jq is missing (fail-closed, not path-aware).
-RESULT=$(run_hook_no_jq "src/App.tsx")
+mapfile -t _out < <(run_hook_no_jq "src/App.tsx")
+NO_JQ_EXIT="${_out[0]:-1}"; RESULT="${_out[1]:-allow}"
 [[ "$RESULT" == "deny" ]] || fail "jq-missing + src/App.tsx should be denied (fail-closed, any path), got: $RESULT"
-pass "jq-missing: Edit src/App.tsx → deny (fail-closed, any path)"
+[[ "$NO_JQ_EXIT" -eq 0 ]] || fail "jq-missing + src/App.tsx: hook must exit 0 (got $NO_JQ_EXIT) — exit 1 is non-blocking; Claude Code ignores JSON and fails open"
+pass "jq-missing: Edit src/App.tsx → deny (fail-closed, any path, exit 0)"
+
+echo ""
+echo "── Allow-list bypass: shield must deny regardless of permissions.allow ───"
+# settings.json permissions.allow includes Edit(**) and Write(**), which suppress
+# the interactive prompt for all file paths. PreToolUse hooks fire independently
+# of the permission allow-list — they run before permission checks and cannot be
+# bypassed by allow-list entries. The shield must block protected writes even when
+# the allow-list would otherwise permit them without prompting.
+
+RESULT=$(run_hook "contracts/schema.sql")
+[[ "$RESULT" == "deny" ]] || fail "contracts/schema.sql must be denied even though Edit(**) is in permissions.allow, got: $RESULT"
+pass "allow-list bypass: Edit(**) in permissions.allow does not bypass shield for contracts/schema.sql"
+
+RESULT=$(run_hook "Arbor Spec/21 Contracts/C1 SQLite Schema.md")
+[[ "$RESULT" == "deny" ]] || fail "Arbor Spec/21 Contracts/... must be denied even though Edit(**) is in permissions.allow, got: $RESULT"
+pass "allow-list bypass: Edit(**) in permissions.allow does not bypass shield for Arbor Spec/21 Contracts/..."
+
+RESULT=$(run_hook "tests/T-001/smoke.test.ts")
+[[ "$RESULT" == "deny" ]] || fail "tests/T-001/smoke.test.ts must be denied even though Edit(**) is in permissions.allow, got: $RESULT"
+pass "allow-list bypass: Edit(**) in permissions.allow does not bypass shield for tests/T-001/smoke.test.ts"
 
 echo ""
 echo "All contract-shield smoke tests passed."

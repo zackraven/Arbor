@@ -10,7 +10,7 @@ Every session operates in exactly ONE of three roles. If the user has not stated
 - May read: the entire vault + codebase.
 - Job: maintain `20 Architecture`, `21 Contracts/`, `22 Build Plan`; write tickets into `23 Tickets/` following `23 Tickets/_Ticket Template.md` exactly; adjudicate Blocked tickets; update contracts (each contract change REQUIRES a decisions-log entry).
 - Never implements tickets in the same session it writes them.
-- **Launch command:** `ARBOR_ROLE=architect claude` — required to bypass the contract-shield and spec-shield hooks, which fire in ALL sessions. Without this env var the shields block all writes to `contracts/`, `Arbor Spec/21 Contracts/`, and `Arbor Spec/00–12` notes, even in an architect session.
+- **Launch command:** `bash tools/arch.sh` (or `ARBOR_ROLE=architect claude`) — required to bypass the contract-shield and spec-shield hooks, which fire in ALL sessions. Without this env var the shields block all writes to `contracts/`, `Arbor Spec/21 Contracts/`, and `Arbor Spec/00–12` notes, even in an architect session.
 
 ### IMPLEMENTER (this is probably you)
 - May read ONLY: your assigned ticket in `23 Tickets/`, the contract files that ticket links, `20 Architecture` sections the ticket links, and the files the ticket names. Do NOT read the design notes (00–12) or other tickets. Limited context is intentional.
@@ -31,6 +31,18 @@ Every session operates in exactly ONE of three roles. If the user has not stated
 2. One implementer session per ticket, fresh context each time.
 3. Verifier pass → commit message references the ticket id (e.g. `T-002: sqlite schema + migrations`).
 4. Blocked tickets return to an architect session; resolutions are logged in note 12.
+
+## Quick launchers
+
+Convenience scripts in `tools/` set the correct environment for each role. Any extra arguments are forwarded to `claude`.
+
+| Script | Role | Effect |
+|--------|------|--------|
+| `bash tools/arch.sh` | Architect | Sets `ARBOR_ROLE=architect` — shields bypass active |
+| `bash tools/impl.sh` | Implementer | Unsets `ARBOR_ROLE` — shields fully active |
+| `bash tools/verify.sh` | Verifier | Unsets `ARBOR_ROLE` — shields fully active |
+
+The shield bypass applies to contract-shield and spec-shield only. Hooks that fire regardless of role (post-edit-lint, commit-gate, session-log) are unaffected by `ARBOR_ROLE`.
 
 ## Conventions (all roles)
 
