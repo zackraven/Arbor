@@ -39,6 +39,23 @@ PreToolUse hooks can deterministically block a tool call before it happens; unli
 4. **Commit gate** — block `git commit` unless the ticket file referenced in the message has `status: implemented|done` (cheap script parsing frontmatter).
 5. **Session log** — append tool-call summaries to a per-ticket audit file; makes verifier and Blocked adjudication reviewable.
 
+### Guardrail verification protocol (drill)
+
+When verifying that the shields work correctly — whether during T-004 acceptance testing or any ad-hoc drill — the following rules are **mandatory**:
+
+1. **Serial probes only.** Run one probe per message (one tool call at a time). Parallel tool calls in a single message race against each other; the hook may fire on one and allow the other before the first result is processed, producing false passes. One call → one result → confirm block → next probe.
+
+2. **Probes must be operations that would otherwise succeed.** A probe is only evidence that the shield is working if the underlying operation would have completed without the shield. Do not use malformed paths, non-existent files, or read-only operations as probes — they would fail (or no-op) anyway.
+
+3. **Fail closed on jq unavailability.** The shields use `jq` to parse the hook input JSON. If `jq` is absent or exits non-zero, the shield must default to **deny** (exit non-zero), not allow. Current implementation exits 0 on jq failure (fail-open) — this is a known defect. Fix: replace all `jq` calls with a guard that denies if jq is unavailable. Until fixed, verify jq is present (`which jq`) before running a drill.
+
+4. **All three protected path classes must be probed in each full drill:**
+   - `contracts/` or `Arbor Spec/21 Contracts/` (contract paths)
+   - `tests/T-*/` (acceptance tests)
+   - `Arbor Spec/00–12` spec notes (spec-shield, separate hook)
+
+5. **Both write vectors must be probed:** Edit/Write tool and Bash write verbs (`>`, `sed -i`, etc.).
+
 ## Skills (`.claude/skills/`)
 
 Skills load knowledge on demand instead of bloating every context — the token-efficient home for "how we do X here":
@@ -59,6 +76,8 @@ The implementer's inner loop is only as good as what it can observe. Code ticket
 - Install + smoke test is ticket **T-005** (architect to write, Phase 0/3 boundary): harness launches, screenshots the T-001 placeholder app, image lands in the session log folder.
 
 Judgment calls on aesthetics stay with the user (context advantage — you know what "smooth and sexy" means); the harness exists so the loop only escalates to you *after* the agent has cleared everything objectively checkable.
+
+**Rule: no `[manual]` UI checks.** Any ticket that produces or modifies a user-visible surface (Phase 3+) must include an automated observation criterion using `pnpm observe`, not a `[manual]` check. Manual checks introduce the exact false-pass risk that caused T-001 AC3 to miss the `beforeDevCommand` recursion. Exception: T-005 itself (the harness cannot automate its own installation smoke test) and non-visual tickets (backend, schema, validators).
 
 ## Loop health metrics (instrumenting the process itself)
 

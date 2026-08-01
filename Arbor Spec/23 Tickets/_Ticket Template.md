@@ -10,6 +10,9 @@ depends_on: []
 ## Goal
 <Two sentences max. What exists after this ticket that didn't before.>
 
+## System prerequisites
+<List every tool, runtime, or system package the implementer must have installed before beginning. The **user** installs these before handing the ticket to an implementer session — not the implementer. If this section is empty, write "none". The implementer may not install software, modify PATH, or make any persistent change outside the repository; if a prerequisite appears to be missing → STOP, write the question under Blocked, set `status: blocked`, end the session.>
+
 ## Context links (implementer may read ONLY these)
 - Contract(s): [[21 Contracts/Cx …]]
 - Architecture section(s): [[20 Architecture#…]]

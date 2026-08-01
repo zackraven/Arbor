@@ -188,5 +188,43 @@ RESULT=$(run_bash_hook 'echo "-- comment" >> contracts/schema.sql' "architect")
 pass "ARBOR_ROLE=architect: bash echo >> contracts/schema.sql → allow"
 
 echo ""
+echo "── jq-missing path: fail-closed (must deny) ────────────────────────────"
+
+# Build a PATH that excludes every directory containing a jq executable.
+# This simulates jq not being installed without touching the real system.
+_path_without_jq() {
+    local result="" dir
+    while IFS= read -r dir; do
+        [[ -n "$dir" && -x "${dir}/jq" ]] || result="${result:+${result}:}${dir}"
+    done < <(printf '%s' "$PATH" | tr ':' '\n')
+    printf '%s' "$result"
+}
+
+# Run the hook with jq removed from PATH; parse output with grep (not jq).
+# ARBOR_ROLE is explicitly cleared so the architect gate does not bypass the check.
+run_hook_no_jq() {
+    local file_path="$1"
+    local output
+    output=$(ARBOR_ROLE="" PATH="$(_path_without_jq)" bash "$SCRIPT" \
+        <<< "{\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"${file_path}\"}}" \
+        2>/dev/null)
+    if echo "$output" | grep -qE '"permissionDecision"[[:space:]]*:[[:space:]]*"deny"'; then
+        echo "deny"
+    else
+        echo "allow"
+    fi
+}
+
+# Protected path: must be denied (fail-closed).
+RESULT=$(run_hook_no_jq "contracts/schema.sql")
+[[ "$RESULT" == "deny" ]] || fail "jq-missing + contracts/schema.sql should be denied (fail-closed), got: $RESULT"
+pass "jq-missing: Edit contracts/schema.sql → deny (fail-closed)"
+
+# Unprotected path: must also be denied when jq is missing (fail-closed, not path-aware).
+RESULT=$(run_hook_no_jq "src/App.tsx")
+[[ "$RESULT" == "deny" ]] || fail "jq-missing + src/App.tsx should be denied (fail-closed, any path), got: $RESULT"
+pass "jq-missing: Edit src/App.tsx → deny (fail-closed, any path)"
+
+echo ""
 echo "All contract-shield smoke tests passed."
 exit 0

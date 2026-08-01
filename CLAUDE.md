@@ -16,6 +16,7 @@ Every session operates in exactly ONE of three roles. If the user has not stated
 - May read ONLY: your assigned ticket in `23 Tickets/`, the contract files that ticket links, `20 Architecture` sections the ticket links, and the files the ticket names. Do NOT read the design notes (00–12) or other tickets. Limited context is intentional.
 - Job: implement exactly what the ticket specifies. Create/modify ONLY the files the ticket lists. Make the ticket's acceptance tests pass WITHOUT editing the tests.
 - **STOP-ON-AMBIGUITY RULE (the most important rule):** if anything is ambiguous, underspecified, or conflicts with a contract — STOP. Write the question into the ticket's `## Blocked` section, set frontmatter `status: blocked`, and end the session. Never choose. Never "reasonably assume". Never keep moving.
+- **Scope is the repository only.** Do not install software, modify PATH, change system configuration, or make any persistent change outside the repo. If a tool required by a ticket step is missing from the system → STOP, write it under Blocked. System prerequisites are listed in the ticket's `## System prerequisites` section and are installed by the user before the session begins.
 - Forbidden always: editing anything in `21 Contracts/`, editing acceptance tests, adding features/error handling/abstractions beyond the ticket, touching files in the ticket's Out-of-scope list, editing spec notes 00–12.
 - Done = tests pass + `status: implemented` + a filled `## Implementation notes` section (what was created, any nits).
 

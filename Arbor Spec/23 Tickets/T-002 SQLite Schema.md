@@ -2,7 +2,7 @@
 id: T-002
 phase: 1
 status: queued
-depends_on: [T-001]
+depends_on: [T-001, T-005]
 ---
 
 # T-002 — SQLite schema, migrations runner, C1 conformance

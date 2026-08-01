@@ -105,3 +105,36 @@ Files changed: `.claude/settings.json`, `.claude/hooks/contract-shield.sh`, `.cl
 **2026-07-23 — Vault path corrected in all prose references.** {#vault-path-fix-2026-07-23}
 
 The actual on-disk path is `Arbor Spec/` (not `spec/` as written in the initial spec, CLAUDE.md, and note 24). All references updated: `CLAUDE.md`, `Arbor Spec/20 Architecture.md`, `Arbor Spec/24 Agent Tooling & Optimisation.md`. Hook scripts and smoke test already used the correct path and required no change.
+
+**2026-07-31 — Guardrail verification protocol formalised.** {#guardrail-verification-2026-07-31}
+
+Note 24 §Hooks now contains a five-rule "Guardrail verification protocol (drill)" mandatory for any session verifying shield correctness:
+
+1. **Serial probes only** — one tool call per message; parallel calls can race and produce false passes.
+2. **Probes must be operations that would otherwise succeed** — malformed paths or no-op operations are not evidence the shield is working.
+3. **Fail-closed on jq unavailability** — shields must deny if jq is absent (exit 1), not fail open (exit 0). This was a known defect; fixed in this session (see policy-decisions entry below).
+4. **All three protected path classes per full drill**: `contracts/`, `Arbor Spec/21 Contracts/`, `tests/T-*/`, and `Arbor Spec/00–12`.
+5. **Both write vectors**: Edit/Write tool and Bash write verbs.
+
+Files changed: `Arbor Spec/24 Agent Tooling & Optimisation.md`.
+
+**2026-07-31 — T-001 Bootstrap verification findings.** {#T-001-findings-2026-07-31}
+
+T-001 verification (2026-07-31) surfaced four findings with architect follow-up:
+
+1. **Seven unenumerated framework-mandatory files** were created but not listed in the ticket's Create section: `index.html`, `src/main.tsx`, `vitest.config.ts`, `src-tauri/build.rs`, `src-tauri/capabilities/default.json`, `src-tauri/icons/icon.ico`, `pnpm-workspace.yaml`. All are framework-required (Vite, Tauri v2, pnpm); none are scope creep. The ticket was underspecified. Architect action: add framework-mandatory scaffolding clause to Rule 3 of `/write-ticket` (done this session).
+2. **`beforeDevCommand` infinite recursion** (`tauri.conf.json: "pnpm dev"` → `package.json dev: "tauri dev"` → loop). Found during rework; fixed by setting `beforeDevCommand: "vite"` and `beforeBuildCommand: "vite build"`. User confirmed `pnpm dev` runs correctly.
+3. **System prerequisites installed without explicit ticket authorisation**: pnpm 11.18.0, Rust stable 1.97.1, MSYS2/MinGW64 GCC 16.1.0, Windows user PATH modified. Installs are correct; this is a process violation only. Architect action: add a "System prerequisites" section to `_Ticket Template.md` (pending — next architect session).
+4. **AC3 `[manual]` check missed the recursion bug** until a rework run. Validates the note 24 "no `[manual]` UI checks" policy. Architect action: add automated-observation clause to Rule 5 of `/write-ticket` (done this session).
+
+Files changed: `Arbor Spec/23 Tickets/T-001 Bootstrap.md` (verification section filled), `src-tauri/tauri.conf.json`, `vite.config.ts`.
+
+**2026-07-31 — Policy decisions: jq fail-closed, framework scaffolding clause, observation clause.** {#policy-decisions-2026-07-31}
+
+Three policy decisions implemented this session, all arising from T-001 and T-004 guardrail findings:
+
+1. **jq fail-closed**: `contract-shield.sh` and `spec-shield.sh` now check for jq before reading stdin. If jq is absent, each hook emits a deny JSON via `printf` (no jq invocation in the no-jq path) and exits 1. The architect gate is checked first so architect sessions bypass cleanly even without jq. New test cases added to `tests/T-004/contract-shield-smoke.sh` covering this path.
+2. **Framework-mandatory scaffolding clause added to Rule 3** of `.claude/skills/write-ticket/SKILL.md`: framework-generated mandatory files (e.g. `build.rs`, `index.html`) must be named explicitly in the ticket's Create list with a note on which step generates them; discovering an unlisted mandatory file is a Blocked condition, not implementer latitude.
+3. **Automated-observation clause added to Rule 5** of `.claude/skills/write-ticket/SKILL.md`: Phase 3+ UI tickets must use `pnpm observe` for visual AC, not `[manual]`. Exceptions: T-005 itself and non-visual tickets.
+
+Files changed: `.claude/hooks/contract-shield.sh`, `.claude/hooks/spec-shield.sh`, `tests/T-004/contract-shield-smoke.sh`, `.claude/skills/write-ticket/SKILL.md`.

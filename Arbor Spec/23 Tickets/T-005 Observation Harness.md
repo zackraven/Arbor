@@ -26,7 +26,7 @@ A `pnpm observe` script launches the Vite dev server, drives the running app wit
 
 ### 1. Dev-server lifecycle
 
-Use Node.js `child_process.spawn` to start the Vite dev server (`pnpm dev`) as a subprocess. Wait for the server to be ready by polling `http://localhost:1420` (the default Tauri dev port) every 200 ms, timing out after 30 s. If the timeout is reached, kill the child process and exit with code 1 and message `"dev server did not start within 30s"`.
+Use Node.js `child_process.spawn` to start the Vite dev server (`pnpm dev`) as a subprocess. Wait for the server to be ready by polling `http://localhost:1421` (Arbor's pinned dev port) every 200 ms, timing out after 30 s. If the timeout is reached, kill the child process and exit with code 1 and message `"dev server did not start within 30s"`.
 
 On any signal (SIGINT, SIGTERM) or unhandled rejection: kill the child process before the Node process exits. Use a single cleanup function registered with `process.on('exit', …)` and `process.on('SIGINT', …)` / `process.on('SIGTERM', …)`.
 

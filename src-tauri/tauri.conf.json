@@ -5,7 +5,7 @@
   "identifier": "dev.arbor.app",
   "build": {
     "beforeDevCommand": "vite",
-    "devUrl": "http://localhost:5173",
+    "devUrl": "http://localhost:1421",
     "beforeBuildCommand": "vite build",
     "frontendDist": "../dist"
   },

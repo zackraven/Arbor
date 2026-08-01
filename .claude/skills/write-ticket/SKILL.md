@@ -43,6 +43,8 @@ Contract IDs must be real identifiers (`contracts/pack.schema.json`, `[[C2 Pack 
 **Rule 3 — Files is exhaustive.**
 List every file the implementer will touch under **Create** or **Modify** — and nothing else. If a file needs touching that isn't listed, the ticket is wrong. Fix the ticket, not the implementer.
 
+**Framework-mandatory scaffold files** (files the toolchain requires to build or run, e.g. `build.rs`, `capabilities/default.json`, `index.html`, `src/main.tsx`) must be listed explicitly, even when their content is dictated by the framework. Note which step creates each — e.g. "framework-mandatory: Tauri v2 requires `build.rs`; `cargo build` fails without it." An unlisted file the implementer discovers is framework-mandatory is a ticket defect — STOP, record the file under Blocked, and end the session. Never create framework-mandatory files silently.
+
 **Rule 4 — Steps are two-implementer-identical.**
 Avoid: "implement the schema". Write: "copy `contracts/migrations/0001_init.sql` verbatim into `src-tauri/migrations/`; a provided test diffs the two files — they must be identical."
 Include: exact column types from the contract, exact function signatures, exact error types, exact behaviour on edge cases.
@@ -53,6 +55,8 @@ Every criterion is one of:
 - `tests/T-NNN/bar.rs` passes (run via `cargo test --manifest-path src-tauri/Cargo.toml --test t-NNN-bar`)
 - `pnpm lint` exits 0
 - `[manual]` — marked explicitly, used only when automation is truly impossible
+
+**Automated-observation rule (Phase 3+ UI tickets):** Any ticket that produces or modifies a user-visible surface must include a `pnpm observe` criterion — `pnpm observe --route <path> --ticket T-NNN --out <dir>` produces a screenshot; assert the PNG is non-empty — rather than `[manual]`. Manual UI checks are prohibited: T-001 AC3 used `[manual]` and missed an infinite-recursion bug until rework. Exceptions: T-005 itself (harness cannot automate its own installation) and non-visual tickets (backend, schema, validators).
 
 **Rule 6 — Out of scope is specific.**
 Minimum: do not edit contracts/, do not add unlisted dependencies, do not add error-handling/abstractions beyond Steps. Always end with:

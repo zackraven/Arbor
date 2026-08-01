@@ -2,7 +2,7 @@
 id: T-003
 phase: 1
 status: queued
-depends_on: [T-001]
+depends_on: [T-001, T-005]
 ---
 
 # T-003 — pack.json schema validator + fixture packs
