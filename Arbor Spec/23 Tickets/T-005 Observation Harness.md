@@ -1,7 +1,7 @@
 ---
 id: T-005
 phase: 0
-status: queued
+status: done
 depends_on: [T-001, T-004]
 ---
 
@@ -107,10 +107,14 @@ Resolved 2026-08-02: The `http://localhost:1420` navigation URL in §3 was a typ
 
 ## Implementation notes
 
-All automated acceptance criteria satisfied:
+All acceptance criteria satisfied:
+
 - **AC1** — `tests/T-005/observe.test.ts`: 12/12 tests pass (`pnpm exec vitest run tests/T-005/observe.test.ts`).
+- **AC2** — `MSYS_NO_PATHCONV=1 pnpm observe --route / --out C:/Users/Alex/AppData/Local/Temp/arbor-obs-test` produced `00-initial.png` (1280×800 PNG, 5 242 bytes). "Arbor" text is visually centred. Centre pixel (640, 400) = R=17 G=17 B=17 — not pure black (background is `#111111`). Screenshot path: `C:/Users/Alex/AppData/Local/Temp/arbor-obs-test/00-initial.png`.
+- **AC3** — SIGINT sent 2 s into a fresh observe run (before screenshot captured); observe exited with code 0 in 729 ms; `pgrep vite` and `pgrep tauri` returned empty — no lingering dev-server processes. Well within the 3 s bound.
 - **AC4** — `pnpm lint` exits 0 (`tsc --noEmit` clean; `cargo clippy` clean).
-- **AC2, AC3** — pending manual verification. Port corrected to 1421 in ticket §3 and `tools/observe.ts` by architect (2026-08-02); run `pnpm observe --route / --out /tmp/arbor-obs-test` to satisfy AC2 and test SIGINT for AC3.
+
+Note: on MINGW64/Windows the slash route argument `/` is path-converted by the shell; prefix the command with `MSYS_NO_PATHCONV=1` to prevent conversion.
 
 Files created/modified:
 - `tools/observe.ts` — created; CLI entrypoint with parseArgs, pnpm-dev spawn, 1421-polling, Playwright chromium at 1280×800, actions.json loop, screenshot naming, trace.json, cleanup handlers.
@@ -118,3 +122,28 @@ Files created/modified:
 - `pnpm-workspace.yaml` — set `esbuild: true` to resolve pnpm's auto-generated `allowBuilds.esbuild` placeholder; this file was not listed in the ticket's Files section (see decisions log 2026-08-02).
 
 ## Verification
+
+**Verdict: pass** — 2026-08-02
+
+### Specific rulings
+
+**(a) CLI interface, actions.json, screenshot naming, trace.json**
+
+All conform to the ticket spec:
+
+- **CLI interface:** All four flags (`--route`, `--actions`, `--out`, `--ticket`) are present with correct types and defaults (`/`, none, `.claude/session-logs/observe-<ISO-date>`, none). Parsed with `parseArgs` from `node:util`. ✓
+- **DEV_PORT:** Declared once as `const DEV_PORT = 1421` at line 40; referenced in both the poll URL (line 119) and navigation URL (line 135) — no hard-coded port literals elsewhere. ✓
+- **actions.json format:** All four specified action types implemented correctly. `waitFor` calls `page.waitForSelector` with timeout defaulting to 5000. `click` calls `page.click`. `wait` calls `page.waitForTimeout`. `screenshot` calls `page.screenshot` and saves to `outDir`. Unknown types warn and skip without throwing. ✓
+- **Screenshot naming:** `makeScreenshotFilename` zero-pads counter with `padStart(2, '0')`. Initial screenshot uses counter 0 → `00-initial.png` (or `<ticket>-00-initial.png`). Counter is then set to 1 and incremented per screenshot action — consistent with the spec's `<NN>` progression. ✓
+- **trace.json:** Written as a JSON array. Each entry has `{type, timestamp}` plus optional `selector`, `ms`, `screenshot` matching the ticket's schema. Initial navigation entry has `type: 'navigation'`, which is a correct interpretation of "mirroring the executed actions plus the initial navigation." ✓
+- **Exit codes:** 0 on success; 1 on timeout or Playwright error, with error written to `trace.json`. ✓
+
+**(b) MSYS_NO_PATHCONV=1 documentation — documentation gap, flagged for architect**
+
+`MSYS_NO_PATHCONV=1` appears in **exactly one file**: the `## Implementation notes` section of this ticket. It is absent from every durable spec note (grep across the entire repo confirms this). Note 24 (Agent Tooling & Optimisation) describes the observation harness but contains no mention of the MINGW64/MSYS path-conversion issue. Future implementer and verifier sessions running on Windows that invoke `pnpm observe --route /` will hit the same silent failure without any in-vault reference to guide them.
+
+This is not a contract violation and does not affect the pass verdict. It is a documentation gap. The architect should add a Windows/MSYS shell note (e.g., under note 24's Observation harness section or in a new developer-environment note) recording that the `observe` script requires `MSYS_NO_PATHCONV=1` on MINGW64 whenever `--route` or `--out` arguments begin with `/` or a Windows drive letter, to prevent the MSYS shell from converting them to Unix paths.
+
+### Out-of-scope note
+
+`pnpm-workspace.yaml` was modified but is not in the ticket's Files list. This was reviewed and pre-adjudicated by the architect in the 2026-08-02 decisions log entry (§T-005-port-fix-2026-08-02), which records the change as correct. No violation.
