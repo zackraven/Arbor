@@ -255,5 +255,36 @@ RESULT=$(run_hook "tests/T-001/smoke.test.ts")
 pass "allow-list bypass: Edit(**) in permissions.allow does not bypass shield for tests/T-001/smoke.test.ts"
 
 echo ""
+echo "── .claude/ self-protection: protected paths must be denied ─────────────"
+# contract-shield.sh explicitly lists .claude/hooks/, .claude/settings.json,
+# .claude/agents/, and .claude/skills/ as self-protection targets.
+# These were verified in ad-hoc probes but were absent from this enumerated suite,
+# so a regex refactor could silently drop them. Added 2026-08-02.
+
+RESULT=$(run_hook ".claude/settings.json")
+[[ "$RESULT" == "deny" ]] || fail ".claude/settings.json should be denied (self-protection), got: $RESULT"
+pass ".claude/settings.json → deny"
+
+RESULT=$(run_hook ".claude/hooks/contract-shield.sh")
+[[ "$RESULT" == "deny" ]] || fail ".claude/hooks/contract-shield.sh should be denied (self-protection), got: $RESULT"
+pass ".claude/hooks/contract-shield.sh → deny"
+
+RESULT=$(run_hook ".claude/agents/implementer.md")
+[[ "$RESULT" == "deny" ]] || fail ".claude/agents/implementer.md should be denied (self-protection), got: $RESULT"
+pass ".claude/agents/implementer.md → deny"
+
+RESULT=$(run_hook ".claude/skills/write-ticket/SKILL.md")
+[[ "$RESULT" == "deny" ]] || fail ".claude/skills/write-ticket/SKILL.md should be denied (self-protection), got: $RESULT"
+pass ".claude/skills/write-ticket/SKILL.md → deny"
+
+RESULT=$(run_bash_hook 'echo "# tamper" >> .claude/hooks/contract-shield.sh')
+[[ "$RESULT" == "deny" ]] || fail "bash echo >> .claude/hooks/ should be denied (self-protection), got: $RESULT"
+pass "bash: echo >> .claude/hooks/contract-shield.sh → deny"
+
+RESULT=$(run_hook ".claude/settings.json" "architect")
+[[ "$RESULT" == "allow" ]] || fail ".claude/settings.json with ARBOR_ROLE=architect should be allowed, got: $RESULT"
+pass "ARBOR_ROLE=architect: Edit .claude/settings.json → allow"
+
+echo ""
 echo "All contract-shield smoke tests passed."
 exit 0

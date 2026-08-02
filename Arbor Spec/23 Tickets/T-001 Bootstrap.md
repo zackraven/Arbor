@@ -74,7 +74,7 @@ User must do the manual visual check: open a terminal, run `pnpm dev`, confirm a
 **Created files:**
 - `package.json` — pnpm project, React 18.3.1, pinned devDeps (TypeScript 7.0.2, Vite 8.2.0, vitest 4.1.10, @tauri-apps/cli 2.11.4, @tauri-apps/api 2.11.1, @vitejs/plugin-react 6.0.5, @types/node 26.1.2, @types/react 18.3.31, @types/react-dom 18.3.7). Scripts: dev/build/test/lint.
 - `tsconfig.json` — strict: true, noUncheckedIndexedAccess: true, types: ["node"]. Includes src/, tests/, vite.config.ts, vitest.config.ts.
-- `vite.config.ts` — @vitejs/plugin-react, port 5173, Tauri-compatible build settings.
+- `vite.config.ts` — @vitejs/plugin-react, port 5173, Tauri-compatible build settings. (Port later changed to 1421 by architect; see current `vite.config.ts` and decisions log 2026-08-02.)
 - `vitest.config.ts` — include tests/**/*.test.ts, environment: node.
 - `index.html` — Vite entry point mounting #root.
 - `src/main.tsx` — ReactDOM.createRoot entry.

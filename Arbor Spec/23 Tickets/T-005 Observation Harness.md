@@ -24,6 +24,8 @@ A `pnpm observe` script launches the Vite dev server, drives the running app wit
 
 ## Steps
 
+> **Dev port — single source of truth:** Arbor's pinned dev port is **1421**, configured in `vite.config.ts` with `strictPort: true`. Both §1 (polling) and §3 (navigation) use this port. In `tools/observe.ts`, define it once as `const DEV_PORT = 1421;` and reference it in both the poll URL and navigation URL — never write the number twice.
+
 ### 1. Dev-server lifecycle
 
 Use Node.js `child_process.spawn` to start the Vite dev server (`pnpm dev`) as a subprocess. Wait for the server to be ready by polling `http://localhost:1421` (Arbor's pinned dev port) every 200 ms, timing out after 30 s. If the timeout is reached, kill the child process and exit with code 1 and message `"dev server did not start within 30s"`.
@@ -49,7 +51,7 @@ Parse with `parseArgs` from Node.js `node:util`.
 
 - `chromium` browser (bundled with Playwright); no external browser required.
 - Viewport: 1280×800 (exact).
-- Navigate to `http://localhost:1420<route>`.
+- Navigate to `http://localhost:1421<route>`.
 - Take an initial screenshot immediately after navigation settles (`waitForLoadState('networkidle')`).
 
 ### 4. actions.json format
@@ -101,6 +103,18 @@ Exit code 0 on success. On any Playwright error: kill the dev server, write erro
 
 ## Blocked
 
+Resolved 2026-08-02: The `http://localhost:1420` navigation URL in §3 was a typo (1420 → 1421, Arbor's pinned dev port). Fixed in ticket §3 and `tools/observe.ts` by architect. The `pnpm-workspace.yaml` `allowBuilds.esbuild` placeholder resolved to `true` by the T-005 implementer — see decisions log 2026-08-02 for origin analysis.
+
 ## Implementation notes
+
+All automated acceptance criteria satisfied:
+- **AC1** — `tests/T-005/observe.test.ts`: 12/12 tests pass (`pnpm exec vitest run tests/T-005/observe.test.ts`).
+- **AC4** — `pnpm lint` exits 0 (`tsc --noEmit` clean; `cargo clippy` clean).
+- **AC2, AC3** — pending manual verification. Port corrected to 1421 in ticket §3 and `tools/observe.ts` by architect (2026-08-02); run `pnpm observe --route / --out /tmp/arbor-obs-test` to satisfy AC2 and test SIGINT for AC3.
+
+Files created/modified:
+- `tools/observe.ts` — created; CLI entrypoint with parseArgs, pnpm-dev spawn, 1421-polling, Playwright chromium at 1280×800, actions.json loop, screenshot naming, trace.json, cleanup handlers.
+- `package.json` — added `playwright: "1.62.1"` and `tsx: "4.23.1"` as exact-pinned devDependencies; added `"observe": "tsx tools/observe.ts"` script.
+- `pnpm-workspace.yaml` — set `esbuild: true` to resolve pnpm's auto-generated `allowBuilds.esbuild` placeholder; this file was not listed in the ticket's Files section (see decisions log 2026-08-02).
 
 ## Verification
