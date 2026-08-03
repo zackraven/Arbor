@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(cd:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(MSYS_NO_PATHCONV=1 bash:*)",
+      "Bash(git:*)"
     ]
   }
 }
