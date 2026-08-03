@@ -34,6 +34,7 @@ depends_on: []
 - Do not touch <modules/files>.
 - Do not add error handling, config, abstractions, or dependencies beyond what Steps specify.
 - Do not "improve" adjacent code encountered along the way.
+- Never invoke `node -e`, `python -c`, or other interpreter one-liners for diagnostics or version checks. bash-guard denies the command class regardless of argument content. To check an installed package version use `pnpm list <pkg>`; to read a version field use the `Read` tool on `package.json` or `node_modules/<pkg>/package.json`.
 - **If anything is ambiguous: STOP. Write the question under Blocked, set `status: blocked`, end the session. Never choose.**
 
 ## Blocked

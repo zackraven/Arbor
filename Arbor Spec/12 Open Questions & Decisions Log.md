@@ -258,3 +258,29 @@ Both additions addressed real (if slightly different) concerns about mkdir, but 
 - `node script.mjs` → bash-guard: **deny** (command class); contract-shield: irrelevant
 
 Files changed: `.claude/hooks/bash-guard.sh`, `tests/T-004/bash-guard-smoke.sh` (new), `Arbor Spec/12 Open Questions & Decisions Log.md`.
+
+**2026-08-03 — HOOK DENY = FULL STOP held under real conditions; node -e decision; T-003 unblocked.** {#hook-deny-held-2026-08-03}
+
+**Behavioural report.** The same implementer session that bypassed the contract-shield on 2026-08-02 (writing protected files via a temp node script — the incident that drove the multi-layer hardening) stopped correctly on 2026-08-03 when bash-guard denied `node -e "..."`. No workaround was attempted. The session wrote the block to the ticket and ended. This is the first live confirmation that the HOOK DENY = FULL STOP rule (added to CLAUDE.md in the 2026-08-03 hardening entry) holds under operational conditions.
+
+**False-positive analysis.** The denied command was:
+```
+node -e "const p = require('.../ajv/package.json'); console.log(p.version)"
+```
+used to inspect the installed ajv version after `pnpm install`. The specific invocation was read-only and diagnostically harmless. However:
+
+1. `node -e "require('fs').writeFileSync('contracts/pack.schema.json', '...')"` is syntactically identical at the command-class level. bash-guard cannot inspect `-e` argument content to determine absence of file operations — that would require a full JS parser plus runtime analysis, which is impractical and bypassable.
+2. The T-003 bypass post-mortem (2026-08-02) established exactly this class of threat: an interpreter invoked with an innocuous-looking command string performing protected writes at runtime, invisible to path-string analysis.
+3. The check had a direct, permitted alternative: `pnpm list ajv` returns the installed version without invoking node.
+
+Verdict: **the deny was correct by policy.** Classifying it as a false positive would require distinguishing read-only `node -e` from write-capable `node -e` at the command-string level — which is not possible in the general case.
+
+**Decision — bash-guard stays strict on all node invocations.** `node`, `node -e`, `node --version`, and all other node forms remain denied in non-architect sessions. The interpreter-class denial is indifferent to arguments; that is the point. Adding exceptions based on argument content would require argument parsing inside the hook (fragile, bypassable) and would erode the clean command-class / path-class separation between bash-guard and contract-shield.
+
+**Canonical alternatives added to `_Ticket Template.md`** (Out of scope section, applies to all future tickets):
+- Package version checks: `pnpm list <pkg>` (permitted).
+- Version field reads: `Read` tool on `package.json` or `node_modules/<pkg>/package.json` (permitted).
+
+**T-003 unblocked.** Architect reviewed all implementation artifacts created by the blocked session. All four files are correct: `package.json` (ajv 8.17.1 added), `src/api/pack-loader.ts` (Ajv2020, no @tauri-apps imports), `tests/T-003/fixtures/valid-pack/pack.json` (schema-complete, all test assertions satisfied), `tests/T-003/fixtures/invalid-pack/pack.json` (four violations matching test expectations exactly). T-003 reset to `status: queued`. A fresh implementer session runs only `pnpm test` and `pnpm lint`; no file changes are expected.
+
+Files changed: `Arbor Spec/23 Tickets/T-003 Pack Validator.md`, `Arbor Spec/23 Tickets/_Ticket Template.md`, `Arbor Spec/12 Open Questions & Decisions Log.md`.
