@@ -21,13 +21,15 @@ Prose rules get forgotten mid-task; the right home for a constraint is the mecha
 
 ## Subagents (`.claude/agents/`)
 
-Three definitions mirroring the roles in `CLAUDE.md`:
+Four definitions mirroring the roles in `CLAUDE.md`:
 
 - **`implementer`** — tools: file read/write/edit, bash (test running); **denied**: web access, anything outside the repo. Prompt = the IMPLEMENTER section of CLAUDE.md. Modest max-turns so a flailing session stops instead of thrashing.
 - **`verifier`** — `disallowedTools: Edit, Write, NotebookEdit` — a verifier that cannot directly write cannot "fix while verifying". Bash is retained for running tests. The contract-shield and spec-shield hooks in `settings.json` additionally block Bash write-verbs to protected paths, so the working tree is unmodifiable. **Invariant: `git diff` must be empty after every verifier session.** Output: verdict text for the ticket's Verification section.
 - **`architect`** — full read; used interactively with the user rather than fire-and-forget.
 
-**Model tiers** are set by the launch scripts (`tools/arch.sh`, `tools/impl.sh`, `tools/verify.sh`) via `claude --model <alias>`, not in the subagent definitions. Subagent model fields only take effect for Task-tool subagent dispatch, which Arbor does not use — all sessions are top-level. Tiers: architect → Opus; implementer, verifier → Sonnet.
+- **`orchestrator`** — full read access; dispatches implementer and verifier subagents via the Task tool. Does not write tickets, edit contracts, or make architectural decisions. Runs without `ARBOR_ROLE=architect` — all hooks are fully active. Escalates to the user on blocked, rework, hook deny, commit failure, empty queue, or dependency cycles. This is the only role that uses Task-tool subagent dispatch operationally.
+
+**Model tiers** are set by the launch scripts (`tools/arch.sh`, `tools/impl.sh`, `tools/verify.sh`, `tools/orch.sh`) via `claude --model <alias>`, not in the subagent definitions. Subagent model fields only take effect for Task-tool subagent dispatch. The orchestrator is the primary consumer of subagent dispatch — it invokes implementer and verifier as Task-tool subagents, where their model fields (sonnet) take effect. Top-level sessions use the launch script's `--model` flag. Tiers: architect, orchestrator → Opus; implementer, verifier → Sonnet.
 
 Also worth defining for the *product's own* pipeline later (Phase 4): the build orchestrator's decomposer/pruner/author/verifier map naturally onto subagent-style isolated contexts with per-step model tiers — same pattern, one level down.
 

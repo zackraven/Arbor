@@ -365,3 +365,19 @@ Two independent problems compounded:
 The pattern-avoidance class was not explicitly covered by the original HOOK DENY rule — it named "temp scripts, different interpreters, intermediate files" but not "rewording input." The updated rule now covers both demonstrated bypass classes and uses the general principle "any mechanism that achieves the denied outcome by a different path."
 
 Files changed: `.claude/hooks/commit-gate.sh`, `CLAUDE.md`, `Arbor Spec/24 Agent Tooling & Optimisation.md`, `Arbor Spec/12 Open Questions & Decisions Log.md`.
+
+**2026-08-03 — Orchestrator role + /route skill added.** {#orchestrator-role-2026-08-03}
+
+Added a fourth role — ORCHESTRATOR — that automates the implement→verify→commit loop. Key design decisions:
+
+1. **Orchestrator runs WITHOUT `ARBOR_ROLE=architect`.** All hooks (contract-shield, spec-shield, bash-guard, commit-gate, git-integrity-check) are fully active. The orchestrator dispatches implementer and verifier subagents via the Task tool; it does not bypass shields itself. Subagents inherit `settings.json` hooks mechanically.
+
+2. **Subagent model fields become operative.** Prior to the orchestrator, all sessions were top-level `claude` invocations, so the `model` field in `.claude/agents/*.md` was inert. The orchestrator dispatches implementer and verifier as Task-tool subagents, where those model fields (sonnet) take effect. Note 24 updated to reflect this dual-path model tier system.
+
+3. **Explicit escalation boundary.** The orchestrator may autonomously: pick the next queued ticket, dispatch implementer/verifier, commit after verifier pass, move to the next ticket. It MUST escalate on: blocked, rework, hook deny, commit failure, empty queue, dependency cycles. This boundary is encoded in both CLAUDE.md and the subagent definition.
+
+4. **HOOK DENY = FULL STOP applies to the orchestrator.** It is not an architect — it cannot diagnose or fix hooks. The CLAUDE.md rule now lists orchestrator-specific behaviour: stop dispatching, report to user, wait.
+
+5. **`/route` diagnostic skill added.** Encodes the triage heuristics accumulated from T-001 through T-003 as a decision tree: hook deny triage (false positive vs real block), contract conflict routing, test count drift, and new hook verification protocol (note 24 drill). Loaded on demand via `/route`.
+
+Files changed: `.claude/agents/orchestrator.md` (new), `tools/orch.sh` (new), `.claude/skills/route/SKILL.md` (new), `CLAUDE.md`, `Arbor Spec/24 Agent Tooling & Optimisation.md`, `Arbor Spec/12 Open Questions & Decisions Log.md`.
