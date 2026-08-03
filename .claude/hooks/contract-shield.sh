@@ -3,11 +3,15 @@
 # Blocks writes to:
 #   • contracts/                        (schema, migrations, pack schema)
 #   • Arbor Spec/21 Contracts/          (spec source of truth for contracts)
-#   • tests/T-*/                        (acceptance tests — make them pass, don't edit them)
+#   • tests/T-NNN/*.test.ts|*.rs|*.sh   (acceptance test files only — fixtures are writable)
 #   • .claude/hooks/                    (self-protection)
 #   • .claude/settings.json             (self-protection)
 #   • .claude/agents/                   (self-protection)
 #   • .claude/skills/                   (self-protection)
+#
+# NOTE: The test protection is intentionally narrow — it covers only the test-file
+# extensions (.test.ts, .rs, .sh) directly inside tests/T-NNN/, NOT subdirectories
+# such as tests/T-NNN/fixtures/. Fixture JSON/data files are implementer-writable.
 #
 # Only architect sessions (ARBOR_ROLE=architect) may bypass this shield.
 #
@@ -49,8 +53,11 @@ norm() { echo "${1//\\//}"; }
 is_protected_path() {
     local path
     path=$(norm "$1")
+    # tests/ pattern: only top-level test files (*.test.ts, *.rs, *.sh) are protected.
+    # Subdirectories (fixtures/, snapshots/, etc.) are NOT matched, so implementers
+    # can write fixture data without a workaround.
     echo "$path" | grep -qE \
-        '(^|/)contracts/|(^|/)Arbor Spec/21 Contracts/|(^|/)tests/T-[0-9]|(^|/)\.claude/(hooks/|settings\.json$|agents/|skills/)'
+        '(^|/)contracts/|(^|/)Arbor Spec/21 Contracts/|(^|/)tests/T-[0-9]+/[^/]+\.(test\.ts|rs|sh)$|(^|/)\.claude/(hooks/|settings\.json$|agents/|skills/)'
 }
 
 # ── Edit / Write ──────────────────────────────────────────────────────────────
@@ -64,7 +71,7 @@ if [[ "$TOOL_NAME" == "Edit" || "$TOOL_NAME" == "Write" ]]; then
 # ── Bash ──────────────────────────────────────────────────────────────────────
 # Deny any Bash command that both mentions a protected path AND uses a write verb.
 #
-# Write verbs (11):
+# Write verbs (12):
 #   1.  >>  / >   redirection
 #   2.  sed -i    in-place edit (handles -i.bak suffix too)
 #   3.  cp        copy
@@ -75,17 +82,20 @@ if [[ "$TOOL_NAME" == "Edit" || "$TOOL_NAME" == "Write" ]]; then
 #   8.  python open('w'/'a')
 #   9.  git checkout --
 #   10. git restore
+#   11. mkdir     directory creation (catches mkdir -p under protected dirs)
 #   (verbs 1–2 cover >> and > as two syntactic forms of the same mechanism)
 
 elif [[ "$TOOL_NAME" == "Bash" ]]; then
     CMD=$(echo "$INPUT" | jq -r '.tool_input.command // empty')
 
-    # Regex: a protected path segment appears anywhere in the command string
-    PROTECTED_RE='(contracts/|Arbor Spec/21 Contracts/|tests/T-[0-9]|\.claude/(hooks|settings\.json|agents|skills))'
+    # Regex: a protected path segment appears anywhere in the command string.
+    # The tests/ sub-pattern mirrors is_protected_path: only top-level test-file
+    # extensions are protected; fixtures/ subdirs are not.
+    PROTECTED_RE='(contracts/|Arbor Spec/21 Contracts/|tests/T-[0-9]+/[^/]*\.(test\.ts|rs|sh)|\.claude/(hooks|settings\.json|agents|skills))'
 
     if echo "$CMD" | grep -qE "$PROTECTED_RE"; then
-        # Write verb regex covering 10 of 11 verbs (python open checked separately)
-        WRITE_VERB_RE='(>>?[[:space:]]|[[:space:]]-i[[:space:].]|\b(cp|mv) |\btee\b|\btruncate\b|\bdd\b|git[[:space:]]+(checkout[[:space:]]+--|restore\b))'
+        # Write verb regex covering 11 of 12 verbs (python open checked separately)
+        WRITE_VERB_RE='(>>?[[:space:]]|[[:space:]]-i[[:space:].]|\b(cp|mv) |\btee\b|\btruncate\b|\bdd\b|\bmkdir\b|git[[:space:]]+(checkout[[:space:]]+--|restore\b))'
         if echo "$CMD" | grep -qE "$WRITE_VERB_RE"; then
             deny_contract "(bash command targeting protected path)"
         # 11th verb: python/python3 open() in write or append mode

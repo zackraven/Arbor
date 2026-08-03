@@ -255,6 +255,50 @@ RESULT=$(run_hook "tests/T-001/smoke.test.ts")
 pass "allow-list bypass: Edit(**) in permissions.allow does not bypass shield for tests/T-001/smoke.test.ts"
 
 echo ""
+echo "── Narrowed test pattern: fixtures allow / test files deny (both directions) ──"
+# The test-file pattern was narrowed from tests/T-*/ (entire directory) to
+# tests/T-NNN/*.test.ts|*.rs|*.sh (top-level test files only).
+# Fixtures in subdirs (tests/T-NNN/fixtures/**) are now implementer-writable.
+
+# Fixture files must be ALLOWED
+RESULT=$(run_hook "tests/T-003/fixtures/valid-pack/pack.json")
+[[ "$RESULT" == "allow" ]] || fail "tests/T-003/fixtures/valid-pack/pack.json should be allowed (fixture, not a test file), got: $RESULT"
+pass "tests/T-003/fixtures/valid-pack/pack.json → allow (fixture)"
+
+RESULT=$(run_hook "tests/T-003/fixtures/invalid-pack/pack.json")
+[[ "$RESULT" == "allow" ]] || fail "tests/T-003/fixtures/invalid-pack/pack.json should be allowed (fixture, not a test file), got: $RESULT"
+pass "tests/T-003/fixtures/invalid-pack/pack.json → allow (fixture)"
+
+RESULT=$(run_hook "tests/T-003/fixtures/some-dir/nested.json")
+[[ "$RESULT" == "allow" ]] || fail "tests/T-003/fixtures/some-dir/nested.json should be allowed (nested fixture), got: $RESULT"
+pass "tests/T-003/fixtures/some-dir/nested.json → allow (nested fixture)"
+
+# Actual test files (*.test.ts, *.sh) must still be DENIED
+RESULT=$(run_hook "tests/T-004/contract-shield-smoke.sh")
+[[ "$RESULT" == "deny" ]] || fail "tests/T-004/contract-shield-smoke.sh should be denied (test script), got: $RESULT"
+pass "tests/T-004/contract-shield-smoke.sh → deny (test script)"
+
+# Bash: redirect to fixture path must be ALLOWED
+RESULT=$(run_bash_hook 'echo "{}" > tests/T-003/fixtures/valid-pack/pack.json')
+[[ "$RESULT" == "allow" ]] || fail "bash echo > tests/T-003/fixtures/... should be allowed (fixture path), got: $RESULT"
+pass "bash: echo > tests/T-003/fixtures/valid-pack/pack.json → allow (fixture path)"
+
+# Bash: write-verb targeting test file must be DENIED
+RESULT=$(run_bash_hook 'sed -i "s/x/y/" tests/T-003/pack-loader.test.ts')
+[[ "$RESULT" == "deny" ]] || fail "bash sed -i tests/T-003/pack-loader.test.ts should be denied (test file), got: $RESULT"
+pass "bash: sed -i tests/T-003/pack-loader.test.ts → deny (test file)"
+
+# Bash: mkdir targeting test file path must be DENIED (mkdir is now a write verb)
+RESULT=$(run_bash_hook 'mkdir tests/T-003/pack-loader.test.ts')
+[[ "$RESULT" == "deny" ]] || fail "bash mkdir tests/T-003/pack-loader.test.ts should be denied, got: $RESULT"
+pass "bash: mkdir tests/T-003/pack-loader.test.ts → deny (mkdir + test file pattern)"
+
+# Bash: mkdir for a fixture dir must be ALLOWED (fixture path — pattern not matched)
+RESULT=$(run_bash_hook 'mkdir -p tests/T-003/fixtures/valid-pack')
+[[ "$RESULT" == "allow" ]] || fail "bash mkdir -p tests/T-003/fixtures/valid-pack should be allowed (fixture dir), got: $RESULT"
+pass "bash: mkdir -p tests/T-003/fixtures/valid-pack → allow (fixture dir, not a test file path)"
+
+echo ""
 echo "── .claude/ self-protection: protected paths must be denied ─────────────"
 # contract-shield.sh explicitly lists .claude/hooks/, .claude/settings.json,
 # .claude/agents/, and .claude/skills/ as self-protection targets.
