@@ -79,6 +79,8 @@ Judgment calls on aesthetics stay with the user (context advantage — you know 
 
 **Rule: no `[manual]` UI checks.** Any ticket that produces or modifies a user-visible surface (Phase 3+) must include an automated observation criterion using `pnpm observe`, not a `[manual]` check. Manual checks introduce the exact false-pass risk that caused T-001 AC3 to miss the `beforeDevCommand` recursion. Exception: T-005 itself (the harness cannot automate its own installation smoke test) and non-visual tickets (backend, schema, validators).
 
+**MINGW64/Windows shell note:** On MINGW64 (MSYS2/Git Bash), the shell silently converts arguments beginning with `/` or a Windows drive letter into Unix-style paths before the target script sees them (e.g. `--route /` becomes `--route C:/Program Files/Git/`). Prefix every `pnpm observe` invocation with `MSYS_NO_PATHCONV=1` to suppress conversion. This applies to both `--route` and `--out` arguments. Example: `MSYS_NO_PATHCONV=1 pnpm observe --route / --out C:/tmp/arbor-obs`. See [[20 Architecture#Environment notes (Windows/MINGW64)]] for this and other MINGW64 quirks.
+
 ## Loop health metrics (instrumenting the process itself)
 
 The product has a health metric (repair insertions per tree — [[06 Repair System]]); the process gets the same treatment. The session-log hook additionally records per ticket: turns used, test-run count, **blocked?**, **rework?**. Two derived rates, reviewed casually every few tickets:

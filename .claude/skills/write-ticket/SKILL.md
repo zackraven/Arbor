@@ -56,7 +56,7 @@ Every criterion is one of:
 - `pnpm lint` exits 0
 - `[manual]` — marked explicitly, used only when automation is truly impossible
 
-**Automated-observation rule (Phase 3+ UI tickets):** Any ticket that produces or modifies a user-visible surface must include a `pnpm observe` criterion — `pnpm observe --route <path> --ticket T-NNN --out <dir>` produces a screenshot; assert the PNG is non-empty — rather than `[manual]`. Manual UI checks are prohibited: T-001 AC3 used `[manual]` and missed an infinite-recursion bug until rework. Exceptions: T-005 itself (harness cannot automate its own installation) and non-visual tickets (backend, schema, validators).
+**Automated-observation rule (Phase 3+ UI tickets):** Any ticket that produces or modifies a user-visible surface must include a `pnpm observe` criterion — `MSYS_NO_PATHCONV=1 pnpm observe --route <path> --ticket T-NNN --out <dir>` produces a screenshot; assert the PNG is non-empty — rather than `[manual]`. The `MSYS_NO_PATHCONV=1` prefix is mandatory on MINGW64/Windows: without it the shell silently converts path arguments (e.g. `--route /` → a filesystem path) before the script sees them. Manual UI checks are prohibited: T-001 AC3 used `[manual]` and missed an infinite-recursion bug until rework. Exceptions: T-005 itself (harness cannot automate its own installation) and non-visual tickets (backend, schema, validators).
 
 **Rule 6 — Out of scope is specific.**
 Minimum: do not edit contracts/, do not add unlisted dependencies, do not add error-handling/abstractions beyond Steps. Always end with:

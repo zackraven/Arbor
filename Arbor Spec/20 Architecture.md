@@ -57,3 +57,36 @@ Rule: `contracts/` files are generated/copied from `21 Contracts/` notes by an a
 - [ ] Streaming transport for teach sessions (Tauri events vs channel)
 - [ ] Orchestrator persistence details beyond `build_state` sketch
 - [ ] Migration strategy/versioning policy for SQLite
+
+## Environment notes (Windows/MINGW64)
+
+Three Windows/MINGW64 quirks that have bitten Phase 0, collected here so they are findable in one place:
+
+**1. MinGW64 GCC toolchain required for Tauri builds (surfaced T-001)**
+
+Tauri v2 on Windows requires the MSYS2/MinGW64 GCC toolchain, not MSVC. Install via MSYS2 (`pacman -S mingw-w64-x86_64-gcc`). The MinGW64 `bin/` directory must be on the Windows user PATH before `cargo build` can link the Tauri backend. This is a system prerequisite — add it explicitly to any ticket that involves a first `cargo build` on a new machine.
+
+**2. pnpm `allowBuilds` opt-in for postinstall packages (surfaced T-001/T-005)**
+
+pnpm 11's security model blocks packages with `postinstall` scripts unless they are explicitly opted in. When a new dependency with a postinstall script is installed (e.g. `esbuild` as a transitive dep of Vite, `playwright`), pnpm auto-generates a placeholder entry in `pnpm-workspace.yaml`:
+
+```yaml
+allowBuilds:
+  esbuild: "set this to true or false"
+```
+
+This placeholder blocks all subsequent `pnpm` commands. Resolution: set the value to `true` for trusted build tools. Any ticket that adds a package with a postinstall script must name the required `allowBuilds` entry explicitly in its Steps so the implementer does not hit a Blocked condition.
+
+**3. MSYS shell path conversion (surfaced T-005)**
+
+On MINGW64 (MSYS2/Git Bash), the shell silently converts arguments that begin with `/` or a Windows drive letter into Unix-style paths before the target script receives them. For example, `--route /` becomes `--route C:/Program Files/Git/`, and `--out C:/tmp/foo` may be mangled depending on the shell configuration.
+
+Affected: any CLI invocation (including `pnpm observe`) where path or URL-path arguments start with `/` or a drive letter.
+
+Prevention: prefix the command with `MSYS_NO_PATHCONV=1`:
+
+```
+MSYS_NO_PATHCONV=1 pnpm observe --route / --out C:/tmp/arbor-obs
+```
+
+Phase 3+ UI ticket acceptance criteria must include this prefix (enforced in the `/write-ticket` skill's automated-observation clause).
