@@ -115,9 +115,12 @@ The following invariants cannot be expressed in JSON Schema draft 2020-12 and ar
 
 7. **`diagnostic` is a bank of ≥10 items** — encoded in the JSON Schema (`minItems: 10`; no `maxItems`). The runtime draws exactly 10 per attempt, sampling across `outcome_refs` so all outcomes are represented. Bank size > 10 is encouraged so test-out and retakes use fresh samples without verbatim repeats. This is a runtime invariant, not a schema constraint.
 
+8. **All-errors validation** — the pack loader must report ALL schema violations in a single pass, not short-circuit after the first failure. In AJV terms: `allErrors: true`. Packs are authored once and validated at build time; a loader that reports one error per run forces an edit-revalidate-repeat loop that is unacceptable for authoring diagnostics. `PackValidationError.errors` must contain the complete set of AJV `ErrorObject` instances for every failing keyword.
+
 ## Changelog
 
 | Date       | Change                              | Decisions-log ref                          |
 |------------|-------------------------------------|--------------------------------------------|
 | 2026-07-23 | Initial schema v1                   | [[12 Open Questions & Decisions Log#C2-initial-2026-07-23]] |
 | 2026-07-23 | diagnostic: exactly-10 → bank ≥10  | [[12 Open Questions & Decisions Log#C2-diagnostic-bank-2026-07-23]] |
+| 2026-08-03 | allErrors validation invariant added | [[12 Open Questions & Decisions Log#C2-allErrors-2026-08-03]] |

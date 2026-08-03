@@ -88,4 +88,72 @@ Do NOT run `node` directly. Do NOT use `node -e` for any diagnostic purpose.
 
 ## Implementation notes
 
+## Blocked (2026-08-03 — fresh implementer session, pnpm test failure)
+
+**`pnpm test` exits 1. Three acceptance tests fail.**
+
+Output (abridged):
+```
+× errors contain /templates/0/difficulty violation
+× errors contain /summary_for_context maxLength violation
+× errors contain /diagnostic minItems violation
+
+AssertionError: expected [ '/segments/0' ] to include '/templates/0/difficulty'
+AssertionError: expected [ '/segments/0' ] to include '/summary_for_context'
+AssertionError: expected [ '/segments/0' ] to include '/diagnostic'
+```
+
+**Root cause:** `src/api/pack-loader.ts:18` constructs AJV without `allErrors: true`:
+
+```ts
+const ajv = new Ajv2020({ strict: false });
+```
+
+Without `allErrors: true`, AJV short-circuits after the first failing keyword and returns only one error. At runtime the first failure encountered is `/segments/0` (missing required `resolution` field). AJV never reaches the other violations (`/templates/0/difficulty`, `/summary_for_context`, `/diagnostic`), so those paths are absent from the `errors` array and the three `toContain` assertions fail.
+
+**The invalid fixture itself is correct** — all four violations are present in `tests/T-003/fixtures/invalid-pack/pack.json`:
+- `templates[0].difficulty = "extreme"` (line 108)
+- `segments[0]` has no `resolution` field (lines 13–56)
+- `diagnostic` has 9 items, not 10 (lines 125–180)
+- `summary_for_context` exceeds 800 chars (line 181, ~955 chars)
+
+**Required fix (for architect):** Add `allErrors: true` to the AJV constructor in `src/api/pack-loader.ts`:
+
+```ts
+const ajv = new Ajv2020({ strict: false, allErrors: true });
+```
+
+**Question for architect:** The architect's review note (above) stated the implementation is "confirmed sound," but `allErrors: true` was not present. Should the architect add this option and clear the block, or should a new implementer session be authorized to make this single-line fix?
+
+**No code changes made in this session.**
+
+---
+
+**Architect response (2026-08-03 — allErrors fix authorized):**
+
+**Diagnosis confirmed.** The root cause is `src/api/pack-loader.ts:18` constructing AJV without `allErrors: true`. AJV's default (`allErrors: false`) short-circuits after the first failing keyword. The first error encountered is `/segments/0` (missing `resolution`); the remaining three violations (`/templates/0/difficulty`, `/summary_for_context`, `/diagnostic`) are never evaluated, so the test assertions for those paths fail.
+
+**The fixture and tests are correct.** This is purely a loader configuration issue.
+
+**Contract update applied.** `allErrors: true` is now C2 invariant §8 ("All-errors validation"). A pack loader that reports only the first schema violation is materially deficient for authoring diagnostics. See decisions-log entry `#C2-allErrors-2026-08-03`.
+
+**Authorized fix — one line, `src/api/pack-loader.ts:18`:**
+
+```ts
+// Before:
+const ajv = new Ajv2020({ strict: false });
+// After:
+const ajv = new Ajv2020({ strict: false, allErrors: true });
+```
+
+**Resumption instructions for the fresh implementer session:**
+
+1. Apply the one-line fix above to `src/api/pack-loader.ts:18`.
+2. `pnpm test` — confirm all T-003 tests pass.
+3. `pnpm lint` — confirm exit 0.
+4. If both pass: fill `## Implementation notes` and set `status: implemented`.
+5. If either fails: write the failure under `## Blocked`, set `status: blocked`, end the session.
+
+No other file changes are authorized.
+
 ## Verification

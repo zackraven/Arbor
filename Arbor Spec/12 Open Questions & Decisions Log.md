@@ -259,6 +259,20 @@ Both additions addressed real (if slightly different) concerns about mkdir, but 
 
 Files changed: `.claude/hooks/bash-guard.sh`, `tests/T-004/bash-guard-smoke.sh` (new), `Arbor Spec/12 Open Questions & Decisions Log.md`.
 
+**2026-08-03 — C2 invariant §8 added: all-errors validation (allErrors: true).** {#C2-allErrors-2026-08-03}
+
+T-003 acceptance tests failed because `src/api/pack-loader.ts` constructed AJV without `allErrors: true`. AJV's default behaviour short-circuits after the first failing keyword, so only one of four deliberate fixture violations was reported. The three remaining test assertions (`/templates/0/difficulty`, `/summary_for_context`, `/diagnostic`) failed because AJV never evaluated those paths.
+
+The fix is `allErrors: true` in the AJV constructor — a one-line change. The question is whether this is an implementation detail or a contract-level requirement.
+
+**Decision: contract-level invariant.** A pack loader that reports only the first schema violation is materially deficient for the authoring workflow. Packs are authored at build time (Stage 5 of the build pipeline); content authors need to see ALL violations in a single validation pass to fix them efficiently. An edit-revalidate-repeat loop per error is unacceptable when the schema has 20+ required fields, enum constraints, array length bounds, and string length caps. Complete error reporting is not a nice-to-have — it is load-bearing for build-time diagnostics.
+
+Added as C2 §Invariants item 8: "the pack loader must report ALL schema violations in a single pass, not short-circuit after the first failure. In AJV terms: `allErrors: true`."
+
+The fixture and tests are correct and unchanged. T-003 reset to `status: queued` with the one-line fix authorized for the implementer.
+
+Files changed: `Arbor Spec/21 Contracts/C2 Pack Schema.md`, `Arbor Spec/23 Tickets/T-003 Pack Validator.md`, `Arbor Spec/12 Open Questions & Decisions Log.md`.
+
 **2026-08-03 — HOOK DENY = FULL STOP held under real conditions; node -e decision; T-003 unblocked.** {#hook-deny-held-2026-08-03}
 
 **Behavioural report.** The same implementer session that bypassed the contract-shield on 2026-08-02 (writing protected files via a temp node script — the incident that drove the multi-layer hardening) stopped correctly on 2026-08-03 when bash-guard denied `node -e "..."`. No workaround was attempted. The session wrote the block to the ticket and ended. This is the first live confirmation that the HOOK DENY = FULL STOP rule (added to CLAUDE.md in the 2026-08-03 hardening entry) holds under operational conditions.
@@ -284,3 +298,31 @@ Verdict: **the deny was correct by policy.** Classifying it as a false positive 
 **T-003 unblocked.** Architect reviewed all implementation artifacts created by the blocked session. All four files are correct: `package.json` (ajv 8.17.1 added), `src/api/pack-loader.ts` (Ajv2020, no @tauri-apps imports), `tests/T-003/fixtures/valid-pack/pack.json` (schema-complete, all test assertions satisfied), `tests/T-003/fixtures/invalid-pack/pack.json` (four violations matching test expectations exactly). T-003 reset to `status: queued`. A fresh implementer session runs only `pnpm test` and `pnpm lint`; no file changes are expected.
 
 Files changed: `Arbor Spec/23 Tickets/T-003 Pack Validator.md`, `Arbor Spec/23 Tickets/_Ticket Template.md`, `Arbor Spec/12 Open Questions & Decisions Log.md`.
+
+**2026-08-03 — C2 invariant §8: allErrors validation.** {#C2-allErrors-2026-08-03}
+
+T-003 acceptance tests failed because `src/api/pack-loader.ts` constructed AJV without `allErrors: true`. AJV's default (`allErrors: false`) short-circuits after the first failing keyword, returning only one error (`/segments/0`). The remaining three violations (`/templates/0/difficulty`, `/summary_for_context`, `/diagnostic`) were never evaluated. The fixture and tests are correct.
+
+**Decision: contract-level invariant, not implementation detail.** A pack loader that reports only the first schema violation forces content authors into an edit-revalidate-repeat loop. Packs are built once at Stage 5; complete error reporting in a single pass is load-bearing for authoring diagnostics. Added as C2 §Invariants item 8. T-003 reset to `status: queued` with the one-line fix (`allErrors: true`) authorized.
+
+Files changed: `Arbor Spec/21 Contracts/C2 Pack Schema.md`, `Arbor Spec/23 Tickets/T-003 Pack Validator.md`, `Arbor Spec/12 Open Questions & Decisions Log.md`.
+
+**2026-08-03 — Model tiers moved from subagent definitions to launch scripts.** {#model-tiers-launch-scripts-2026-08-03}
+
+The subagent definitions in `.claude/agents/*.md` specified model tiers (Opus for architect, Sonnet for implementer/verifier), but these only take effect when sessions are dispatched as subagents via the Task tool. Arbor runs all sessions as top-level `claude` invocations, so the model tier assignments were never applied — every session used whichever model was selected in the client.
+
+**Fix:** The launch scripts (`tools/arch.sh`, `tools/impl.sh`, `tools/verify.sh`) now pass `--model <alias>` to `claude`:
+
+| Script | `--model` flag |
+|--------|----------------|
+| `tools/arch.sh` | `--model opus` |
+| `tools/impl.sh` | `--model sonnet` |
+| `tools/verify.sh` | `--model sonnet` |
+
+The `--model` CLI flag overrides any `settings.json` model setting or `ANTHROPIC_MODEL` env var for that session. Short aliases (`opus`, `sonnet`) resolve to the latest stable version of each tier.
+
+Note 24 updated: the "principle" table and the subagent descriptions no longer claim model tiers are set in subagent definitions. The token-efficiency §4 now references launch scripts. CLAUDE.md quick-launchers table updated with a Model column.
+
+The `.claude/agents/*.md` model fields are left in place (they are harmless and would be correct if subagent dispatch were ever used), but they are no longer the operative mechanism.
+
+Files changed: `tools/arch.sh`, `tools/impl.sh`, `tools/verify.sh`, `Arbor Spec/24 Agent Tooling & Optimisation.md`, `CLAUDE.md`, `Arbor Spec/12 Open Questions & Decisions Log.md`.

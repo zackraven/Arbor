@@ -16,16 +16,18 @@ Prose rules get forgotten mid-task; the right home for a constraint is the mecha
 | "Which role am I, what may I read" | **Subagent definitions** (tool allow/deny lists) |
 | "Implementer may not edit contracts/tests" | **PreToolUse hook** (deterministic block) |
 | "How to write a ticket / a contract / a pack" | **Skills** |
-| "Cheap model for grunt work, strong for reasoning" | **Per-subagent model assignment** |
+| "Cheap model for grunt work, strong for reasoning" | **Launch scripts** (`tools/*.sh` pass `--model` to `claude`) |
 | "Project conventions every session needs" | **CLAUDE.md** (kept short — it's paid for every session) |
 
 ## Subagents (`.claude/agents/`)
 
 Three definitions mirroring the roles in `CLAUDE.md`:
 
-- **`implementer`** — model: Sonnet-class; tools: file read/write/edit, bash (test running); **denied**: web access, anything outside the repo. Prompt = the IMPLEMENTER section of CLAUDE.md. Modest max-turns so a flailing session stops instead of thrashing.
-- **`verifier`** — model: Sonnet-class; `disallowedTools: Edit, Write, NotebookEdit` — a verifier that cannot directly write cannot "fix while verifying". Bash is retained for running tests. The contract-shield and spec-shield hooks in `settings.json` additionally block Bash write-verbs to protected paths, so the working tree is unmodifiable. **Invariant: `git diff` must be empty after every verifier session.** Output: verdict text for the ticket's Verification section.
-- **`architect`** — strong model; full read; used interactively with the user rather than fire-and-forget.
+- **`implementer`** — tools: file read/write/edit, bash (test running); **denied**: web access, anything outside the repo. Prompt = the IMPLEMENTER section of CLAUDE.md. Modest max-turns so a flailing session stops instead of thrashing.
+- **`verifier`** — `disallowedTools: Edit, Write, NotebookEdit` — a verifier that cannot directly write cannot "fix while verifying". Bash is retained for running tests. The contract-shield and spec-shield hooks in `settings.json` additionally block Bash write-verbs to protected paths, so the working tree is unmodifiable. **Invariant: `git diff` must be empty after every verifier session.** Output: verdict text for the ticket's Verification section.
+- **`architect`** — full read; used interactively with the user rather than fire-and-forget.
+
+**Model tiers** are set by the launch scripts (`tools/arch.sh`, `tools/impl.sh`, `tools/verify.sh`) via `claude --model <alias>`, not in the subagent definitions. Subagent model fields only take effect for Task-tool subagent dispatch, which Arbor does not use — all sessions are top-level. Tiers: architect → Opus; implementer, verifier → Sonnet.
 
 Also worth defining for the *product's own* pipeline later (Phase 4): the build orchestrator's decomposer/pruner/author/verifier map naturally onto subagent-style isolated contexts with per-step model tiers — same pattern, one level down.
 
@@ -99,7 +101,7 @@ Keep minimal — every connected server costs context. Worth it: a **Semantic Sc
 1. **Fresh context per ticket; small contexts by design.** The implementer reads a ticket + linked contracts — never the vault. Long sessions accumulate opinions and cost.
 2. **CLAUDE.md stays under ~1.5k tokens.** Anything situational moves to a skill (loaded only when triggered).
 3. **Deterministic before model.** Lint/tests/schema-validation/sympy run as code via hooks — never ask a model to check what a script can check.
-4. **Model tiers per job**, encoded in subagent defs (and later in C5 for the product's own jobs): strong = architecture, adjudication, authoring; cheap = implementation grunt work, classification.
+4. **Model tiers per job**, encoded in the launch scripts via `--model` (and later in C5 for the product's own jobs): strong (Opus) = architecture, adjudication, authoring; cheap (Sonnet) = implementation grunt work, verification, classification.
 5. **Checkpoint long jobs** (builds resumable) so an exhausted usage window never wastes completed work.
 6. **Compact artifacts as interfaces.** Sessions communicate via files (tickets, contracts, checkpoints), not via conversation history.
 

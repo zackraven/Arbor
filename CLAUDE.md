@@ -38,11 +38,11 @@ Every session operates in exactly ONE of three roles. If the user has not stated
 
 Convenience scripts in `tools/` set the correct environment for each role. Any extra arguments are forwarded to `claude`.
 
-| Script | Role | Effect |
-|--------|------|--------|
-| `bash tools/arch.sh` | Architect | Sets `ARBOR_ROLE=architect` — shields bypass active |
-| `bash tools/impl.sh` | Implementer | Unsets `ARBOR_ROLE` — shields fully active |
-| `bash tools/verify.sh` | Verifier | Unsets `ARBOR_ROLE` — shields fully active |
+| Script | Role | Model | Effect |
+|--------|------|-------|--------|
+| `bash tools/arch.sh` | Architect | Opus | Sets `ARBOR_ROLE=architect` — shields bypass active |
+| `bash tools/impl.sh` | Implementer | Sonnet | Unsets `ARBOR_ROLE` — shields fully active |
+| `bash tools/verify.sh` | Verifier | Sonnet | Unsets `ARBOR_ROLE` — shields fully active |
 
 The shield bypass (`ARBOR_ROLE=architect`) applies to: contract-shield, spec-shield, bash-guard, and git-integrity-check. Hooks that fire regardless of role (post-edit-lint, commit-gate, session-log) are unaffected by `ARBOR_ROLE`.
 
