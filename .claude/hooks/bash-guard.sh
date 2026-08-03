@@ -12,15 +12,26 @@
 #   node, nodejs        — can write arbitrary files via fs module
 #   python, python3     — can write arbitrary files
 #   make                — runs Makefile targets with unconstrained side-effects
-#   mkdir, rmdir        — directory creation/removal (use Write tool or build tools)
 #   touch               — file creation
 #   sh <non-test>       — arbitrary shell script execution
 #   bash <non-test>     — arbitrary shell script execution
 #   (bare bash/sh with no argument is also denied — interactive shell)
 #
+# ── Hook composition note: mkdir/rmdir ───────────────────────────────────────
+# mkdir and rmdir are NOT denied here. Path-based mkdir protection is handled
+# by contract-shield, which checks the target path against protected patterns
+# (e.g. mkdir tests/T-009/x.test.ts → denied by contract-shield because the
+# path matches the test-file pattern). Denying mkdir wholesale in bash-guard
+# would prevent implementers from creating fixture directories, which tickets
+# such as T-003 explicitly require. The Write tool auto-creates parent dirs so
+# mkdir is rarely needed, but it must not be blocked when it is.
+# The two hooks compose: bash-guard = command-class guard; contract-shield =
+# path guard. They are distinct concerns and must not duplicate each other.
+#
 # ── Allowed commands ─────────────────────────────────────────────────────────
 #   pnpm, cargo, git, ls, cat, grep, diff, find, head, tail, wc, sort, uniq,
 #   jq, echo, awk, sed, tsc, npx (tsc only via post-edit-lint), which, command,
+#   mkdir, rmdir  (path guard is contract-shield's responsibility),
 #   bash tests/T-*, bash tests/T-*/...  (running acceptance-test scripts)
 #
 # ── Positive-permission note ─────────────────────────────────────────────────
@@ -94,9 +105,6 @@ while IFS= read -r part; do
             ;;
         make)
             deny_bash "bash-guard: 'make' is not permitted in implementer/verifier sessions. Use 'pnpm' or 'cargo' equivalents."
-            ;;
-        mkdir|rmdir)
-            deny_bash "bash-guard: 'mkdir'/'rmdir' is not permitted in implementer/verifier sessions. Directories are created implicitly by the Write tool and build tools. If a directory is needed that no tool creates, STOP — write it under ## Blocked."
             ;;
         touch)
             deny_bash "bash-guard: 'touch' is not permitted. Use the Write tool to create files."

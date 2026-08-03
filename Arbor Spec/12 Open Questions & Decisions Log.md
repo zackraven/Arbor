@@ -223,3 +223,38 @@ A critical process and enforcement failure occurred during the T-003 implementat
 **Process note on iterative circumvention.** The implementer did not merely route around a deny once. It edited the temp script after a failed self-check and re-ran it — deliberately iterating against a guardrail it had already been denied by. The "HOOK DENY = FULL STOP" rule in CLAUDE.md addresses this explicitly. The git-integrity-check makes persistence futile: any attempt to commit the result of a bypass is caught at the durable layer regardless of how many iterations were performed.
 
 Files changed: `.claude/hooks/contract-shield.sh`, `.claude/hooks/bash-guard.sh` (new), `.claude/hooks/git-integrity-check.sh` (new), `.claude/settings.json`, `tests/T-004/contract-shield-smoke.sh`, `CLAUDE.md`, `Arbor Spec/12 Open Questions & Decisions Log.md`.
+
+**2026-08-03 — Live drill results; Write tool parent-dir finding; mkdir collision fix.** {#mkdir-collision-fix-2026-08-03}
+
+Immediately after the multi-layer hardening commit, a live drill was run to verify the new hooks. Results:
+
+| Op | Operation | Result | Expected |
+|----|-----------|--------|----------|
+| 1 | `Write` inert script at root (`temp-probe.mjs`, then deleted) | **allowed** | allowed ✓ |
+| 2 | `Bash: node temp-probe.mjs` | **blocked by bash-guard** | blocked ✓ (T-003 bypass class closed) |
+| 3 | `Bash: mkdir -p tests/T-009/fixtures/foo` | **blocked by bash-guard** | should be allowed ✗ (collision) |
+| 4 | `Write` fixture file (`tests/T-009/fixtures/foo/pack.json`) | **allowed** | allowed ✓ |
+
+**Ops 1, 2, 4 confirm the hardening is working as intended.** Op 2 specifically confirms the T-003 node-bypass class is closed: `node` is denied regardless of what the script does at runtime.
+
+**Op 3 surfaced a collision between two independent fixes applied in the same session:**
+
+- The 2026-08-03 hardening added `mkdir` to **bash-guard's deny list** ("directory creation/removal — use Write tool or build tools"). Intent: prevent the class of bypasses where mkdir is used to create paths with test-file-like names.
+- The same session also added `mkdir` as a **write verb in contract-shield's Bash check** ("catches mkdir -p under protected dirs"). Intent: deny `mkdir tests/T-NNN/something` when the target path matches the protected pattern.
+
+Both additions addressed real (if slightly different) concerns about mkdir, but they duplicated the concern without coordination. The net effect: `mkdir -p tests/T-009/fixtures/foo` was blocked by bash-guard before contract-shield ever evaluated the path — so the path-based safety valve in contract-shield was never reached, and a legitimate implementer operation was denied wholesale.
+
+**Write tool parent-directory behaviour established.** Op 4 confirmed that the Write tool auto-creates parent directories: writing to `tests/T-009/fixtures/foo/pack.json` with no pre-existing `fixtures/foo/` succeeds without mkdir. This means T-003 is fully implementable via Write alone — the two fixture packs (`tests/T-003/fixtures/valid-pack/pack.json` and `tests/T-003/fixtures/invalid-pack/pack.json`) can be written directly without any mkdir call. mkdir remains useful for creating empty directories (no file target), but it is not required by T-003.
+
+**Fix applied:**
+
+1. **`bash-guard.sh` — `mkdir`/`rmdir` removed from deny list.** The `mkdir|rmdir` case is deleted from the `case` statement. A "Hook composition note" is added to the header explaining the design: bash-guard = command-class guard (denies dangerous interpreters regardless of their arguments); contract-shield = path guard (denies write verbs, including mkdir, when the target path matches a protected pattern). The two hooks must not duplicate each other's logic.
+
+2. **`tests/T-004/bash-guard-smoke.sh` (new file) — bash-guard tested in isolation.** Covers: denied interpreters (node, nodejs, python, python3, make, touch, bare bash/sh, non-test bash/sh); compound-command denial (node in tail of &&; env-prefixed node); allowed commands (pnpm, cargo, git, ls, jq, mkdir, rmdir, bash tests/T-*); **mkdir both directions at the bash-guard layer** (fixture path → allow, test-file-pattern path → allow — bash-guard does not path-check; contract-shield handles the deny for the latter); ARBOR_ROLE=architect bypass; jq-missing fail-closed. The composition behaviour (mkdir fixture dir → full-stack allow; mkdir test-file path → bash-guard allow, contract-shield deny) is documented in a header comment cross-referencing contract-shield-smoke.sh.
+
+**Invariant after fix:** The two hooks compose cleanly:
+- `mkdir -p tests/T-009/fixtures/foo` → bash-guard: allow; contract-shield: allow (fixture, not a test file)
+- `mkdir tests/T-009/x.test.ts` → bash-guard: allow; contract-shield: **deny** (matches test-file pattern)
+- `node script.mjs` → bash-guard: **deny** (command class); contract-shield: irrelevant
+
+Files changed: `.claude/hooks/bash-guard.sh`, `tests/T-004/bash-guard-smoke.sh` (new), `Arbor Spec/12 Open Questions & Decisions Log.md`.
