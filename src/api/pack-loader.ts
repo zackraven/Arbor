@@ -15,7 +15,7 @@ export class PackValidationError extends Error {
   }
 }
 
-const ajv = new Ajv2020({ strict: false });
+const ajv = new Ajv2020({ strict: false, allErrors: true });
 const validate = ajv.compile<Pack>(schema as Record<string, unknown>);
 
 export async function loadPack(
