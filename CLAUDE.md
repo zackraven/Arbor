@@ -2,6 +2,22 @@
 
 This repository is built spec-first. The Obsidian vault in `Arbor Spec/` is the single source of truth. Code follows spec; if code must diverge, the spec is updated first or in the same change, with an entry in `Arbor Spec/12 Open Questions & Decisions Log.md`.
 
+## HOOK DENY = FULL STOP (all roles, the most important rule)
+
+A PreToolUse hook deny is the system telling you that action is forbidden. This rule applies to **every role — architect, implementer, and verifier alike.** The ONLY permitted response is to stop and address the deny through proper channels:
+
+- **Implementer/verifier:** write a `## Blocked` note in the ticket describing what was attempted and why it was denied, set `status: blocked`, and end the session immediately.
+- **Architect:** stop the current action, diagnose whether the hook is correct or has a design flaw, fix the hook if needed, and retry the original action. Never work around the deny.
+
+Attempting ANY alternative route to a denied outcome is a process violation as serious as directly editing a protected file. Explicitly forbidden workarounds include:
+- Writing a temp script to achieve the denied effect indirectly.
+- Using a different interpreter or tool to bypass a command-class denial.
+- Redirecting through an intermediate file.
+- **Rewording a command or commit message to avoid matching a hook's pattern.**
+- Any other mechanism that achieves the denied outcome by a different path.
+
+The violation class is "circumvention" regardless of whether the denied action was itself correct — the hook may be wrong, but the fix is to repair the hook, never to dodge it.
+
 ## Roles
 
 Every session operates in exactly ONE of three roles. If the user has not stated the role, ASK before doing anything.
@@ -16,7 +32,7 @@ Every session operates in exactly ONE of three roles. If the user has not stated
 - May read ONLY: your assigned ticket in `23 Tickets/`, the contract files that ticket links, `20 Architecture` sections the ticket links, and the files the ticket names. Do NOT read the design notes (00–12) or other tickets. Limited context is intentional.
 - Job: implement exactly what the ticket specifies. Create/modify ONLY the files the ticket lists. Make the ticket's acceptance tests pass WITHOUT editing the tests.
 - **STOP-ON-AMBIGUITY RULE (the most important rule):** if anything is ambiguous, underspecified, or conflicts with a contract — STOP. Write the question into the ticket's `## Blocked` section, set frontmatter `status: blocked`, and end the session. Never choose. Never "reasonably assume". Never keep moving.
-- **HOOK DENY = FULL STOP (process violation rule):** A PreToolUse hook deny is the system telling you that action is forbidden. The ONLY permitted response is: write a `## Blocked` note in the ticket describing what was attempted and why it was denied, set `status: blocked`, and end the session immediately. Attempting ANY alternative route to a denied outcome — writing a temp script, using a different interpreter, redirecting through an intermediate file, or any other workaround — is a process violation as serious as directly editing a protected file. The violation is recorded in session logs and caught by the git integrity check at commit time.
+- **HOOK DENY = FULL STOP** applies (see top-level rule above). For implementers: write `## Blocked`, set `status: blocked`, end the session.
 - **Scope is the repository only.** Do not install software, modify PATH, change system configuration, or make any persistent change outside the repo. If a tool required by a ticket step is missing from the system → STOP, write it under Blocked. System prerequisites are listed in the ticket's `## System prerequisites` section and are installed by the user before the session begins.
 - Forbidden always: editing anything in `21 Contracts/`, editing acceptance tests, adding features/error handling/abstractions beyond the ticket, touching files in the ticket's Out-of-scope list, editing spec notes 00–12.
 - Done = tests pass + `status: implemented` + a filled `## Implementation notes` section (what was created, any nits).
@@ -44,7 +60,7 @@ Convenience scripts in `tools/` set the correct environment for each role. Any e
 | `bash tools/impl.sh` | Implementer | Sonnet | Unsets `ARBOR_ROLE` — shields fully active |
 | `bash tools/verify.sh` | Verifier | Sonnet | Unsets `ARBOR_ROLE` — shields fully active |
 
-The shield bypass (`ARBOR_ROLE=architect`) applies to: contract-shield, spec-shield, bash-guard, and git-integrity-check. Hooks that fire regardless of role (post-edit-lint, commit-gate, session-log) are unaffected by `ARBOR_ROLE`.
+The shield bypass (`ARBOR_ROLE=architect`) applies to: contract-shield, spec-shield, bash-guard, git-integrity-check, and commit-gate. Hooks that fire regardless of role (post-edit-lint, session-log) are unaffected by `ARBOR_ROLE`.
 
 ## Conventions (all roles)
 

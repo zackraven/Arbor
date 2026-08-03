@@ -16,7 +16,15 @@ if ! echo "$COMMAND" | grep -qE 'git\s+commit'; then
     exit 0
 fi
 
-# Extract ticket ID (T-NNN) from the commit message
+# Architect bypass — architect sessions may commit with any ticket reference
+# (they write/unblock tickets, not implement them).
+if [[ "${ARBOR_ROLE:-}" == "architect" ]]; then
+    exit 0
+fi
+
+# Extract ticket ID (T-NNN) from the commit message.
+# In non-architect sessions, any T-NNN mention is gated — implementers commit
+# only their assigned ticket, so any reference should match its status.
 TICKET_ID=$(echo "$COMMAND" | grep -oE 'T-[0-9]+' | head -1)
 
 if [[ -z "$TICKET_ID" ]]; then

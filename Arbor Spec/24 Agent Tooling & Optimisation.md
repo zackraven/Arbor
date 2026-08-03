@@ -38,7 +38,7 @@ PreToolUse hooks can deterministically block a tool call before it happens; unli
 1. **Contract shield** — block any Edit/Write/Bash-write-verb targeting `contracts/`, `Arbor Spec/21 Contracts/`, or `tests/T-*/` in **all sessions**. Gate: the session launched with `ARBOR_ROLE=architect claude` bypasses the shield (env-var only — a file marker could be forged by Bash). Covers Bash write verbs: `>`, `>>`, `cp`, `mv`, `sed -i`, `tee`, `dd`, `truncate`, `python -c`, `git checkout --`, `git restore`. Lives in `settings.json PreToolUse`, not in subagent definitions (subagent-scoped hooks only fire when invoked via Task, never in top-level sessions).
 2. **Spec shield** — same gate and Bash-verb coverage for `Arbor Spec/00–12` design notes. Also lives in `settings.json PreToolUse`.
 3. **Post-edit lint** — after any code edit: run `tsc --noEmit` / `cargo clippy` on the touched area; feed failures straight back. Catches drift at the moment it happens instead of at ticket end.
-4. **Commit gate** — block `git commit` unless the ticket file referenced in the message has `status: implemented|done` (cheap script parsing frontmatter).
+4. **Commit gate** — block `git commit` unless the ticket file referenced in the message has `status: implemented|done` (cheap script parsing frontmatter). Gate: `ARBOR_ROLE=architect` bypasses (architect commits reference tickets without implementing them). In non-architect sessions, any `T-NNN` mention in the commit message is gated on the ticket's status.
 5. **Session log** — append tool-call summaries to a per-ticket audit file; makes verifier and Blocked adjudication reviewable.
 
 ### Guardrail verification protocol (drill)
