@@ -1,7 +1,7 @@
 ---
 id: T-002
 phase: 1
-status: queued
+status: done
 depends_on: [T-001, T-005]
 ---
 
@@ -56,6 +56,39 @@ Acceptance test `strict_mode_rejects_type_violations` assumed integer→TEXT coe
 
 Implementation state from the blocking session is intact — only the test needed fixing.
 
+### B-002 — RESOLVED (2026-08-05)
+
+**`cargo test --manifest-path src-tauri/Cargo.toml --lib` was failing with `STATUS_ENTRYPOINT_NOT_FOUND` (0xC0000139) on Windows.**
+
+Resolution: Guarded the `use tauri::Manager;` import and the `run()` function in `src-tauri/src/lib.rs` with `#[cfg(not(test))]`. The test binary no longer links against Tauri or `WebView2Loader.dll`, so the unit tests compile and run successfully using only `rusqlite`. The non-test binary path (`main.rs` calling `arbor_lib::run()`) is unaffected because `#[cfg(not(test))]` is false only during `cargo test --lib`.
+
 ## Implementation notes
 
+**Files created:**
+- `src-tauri/src/db/mod.rs` — `open_or_init(path)` opens/creates a SQLite DB, sets `PRAGMA foreign_keys = ON` and `PRAGMA journal_mode = WAL`, then calls the migrations runner. Returns `DbError` on failure.
+- `src-tauri/src/db/migrations.rs` — bootstraps `schema_migrations(version INTEGER PRIMARY KEY, applied_at TEXT)` with `IF NOT EXISTS`, then applies `src-tauri/migrations/*.sql` files in filename order (each in its own transaction), skipping already-applied versions. Includes two unit tests: `rerun_is_noop` and `missing_table_after_recorded_version_is_err`.
+- `src-tauri/migrations/0001_init.sql` — verbatim copy of `contracts/migrations/0001_init.sql`.
+- `src-tauri/src/lib.rs` — `pub mod db;` plus Tauri-gated `run()` function.
+
+**Files modified:**
+- `src-tauri/src/main.rs` — calls `arbor_lib::run()`.
+- `src-tauri/Cargo.toml` — added `rusqlite` (bundled) and `thiserror` dependencies; added `[[test]]` entries for `t002-migrations` and `t002-contract-sync`.
+- `src-tauri/src/lib.rs` — `use tauri::Manager` and `pub fn run()` gated with `#[cfg(not(test))]` to prevent WebView2Loader.dll linkage in test builds on Windows (B-002 fix).
+
+**Test results:**
+- `cargo test --test t002-migrations` — 6/6 pass
+- `cargo test --test t002-contract-sync` — 1/1 pass
+- `cargo test --lib` — 2/2 pass
+- `pnpm lint` — exits 0 (tsc + clippy clean)
+
 ## Verification
+
+Verification: pass — 2026-08-05
+- tests/T-002/migrations.rs (t002-migrations): 6/6 passed
+- tests/T-002/contract_sync.rs (t002-contract-sync): 1/1 passed
+- cargo test --lib (db::migrations::tests): 2/2 passed
+- pnpm lint: exits 0
+- src-tauri/migrations/0001_init.sql byte-identical to contracts/migrations/0001_init.sql: confirmed
+- Out-of-scope: no violations (no query helpers, ORMs, seed data, Tauri commands, or extra tables)
+- Protected paths in diff: none
+
