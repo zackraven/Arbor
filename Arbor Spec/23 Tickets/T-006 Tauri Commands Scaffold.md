@@ -1,7 +1,7 @@
 ---
 id: T-006
 phase: 2
-status: implemented
+status: done
 depends_on: [T-002]
 ---
 
@@ -138,6 +138,10 @@ None beyond Phase 1 (Rust stable, pnpm, MinGW64 GCC).
 
 ## Verification
 
-Verification: fail — 2026-08-05
-Violations:
-- [out-of-scope file modified]: src-tauri/src/main.rs appears in the T-006 commit diff but is not listed in the ticket's Files section (which specifies Modify: src-tauri/src/lib.rs, src-tauri/src/db/mod.rs, src-tauri/Cargo.toml). CLAUDE.md rule: implementers "Create/modify ONLY the files the ticket lists." The implementation notes describe this as an "architect-applied fix" but the modification appears in the T-006 implementation commit (550277a), not in the architect commit (92aba34).
+Verification: pass — 2026-08-05
+- tests/T-006/commands.rs: 14/14 passed (cargo test --manifest-path src-tauri/Cargo.toml --test t006-commands --no-default-features)
+- pnpm lint: exits 0 (tsc --noEmit + cargo clippy -D warnings both clean)
+- Integrity check: no protected paths (contracts/, Arbor Spec/21 Contracts/, tests/T-NNN/*.test.*, .claude/) in git diff 92aba34..550277a
+- Files section: all 9 files in diff (5 created, 4 modified) match the ticket's Files section exactly; src-tauri/src/main.rs now listed after architect fix in 6ab1515
+- Out-of-scope: no violations (no compute_unlock, no frontend code, no ORMs, no auth)
+- C3 contract: AppError serialises to {code, message}; all response structs pub+Serialize; input structs pub+Deserialize; two-layer _impl/wrapper pattern correct; DbConn wraps Mutex<Connection>; all 7 commands registered in generate_handler!
