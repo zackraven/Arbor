@@ -1,7 +1,7 @@
 ---
 id: T-008
 phase: 2
-status: implemented
+status: done
 depends_on: [T-006]
 ---
 
@@ -76,3 +76,10 @@ All 9 acceptance tests passed:
 No nits; no additional abstractions were added beyond what the ticket specified.
 
 ## Verification
+
+Verification: pass — 2026-08-05
+- tests/T-008/large_fixture.rs (9 tests): passed — large_fixture_loads, node_count_in_range, at_least_3_diamond_merges, high_fan_in_node_exists, branch_depth_variance, deep_chain_exists, wide_fan_out_exists, at_least_4_categories, all_nodes_not_started
+- pnpm lint (tsc --noEmit + cargo clippy -D warnings): exits 0
+- Diff check: only a single [[test]] entry added to src-tauri/Cargo.toml; tests/fixtures/large-tree.json not touched; no other files modified
+- Out-of-scope: no violations
+- Files: only src-tauri/Cargo.toml modified as specified

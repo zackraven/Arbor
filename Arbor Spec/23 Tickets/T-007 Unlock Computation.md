@@ -1,7 +1,7 @@
 ---
 id: T-007
 phase: 2
-status: implemented
+status: done
 depends_on: [T-006]
 ---
 
@@ -81,3 +81,11 @@ Modified `src-tauri/Cargo.toml` to add `[[test]]` entry for `t007-unlock`.
 All 6 acceptance tests pass. `pnpm lint` exits 0. No nits.
 
 ## Verification
+
+Verification: pass — 2026-08-05
+- tests/T-007/unlock.rs (6 tests): passed — compute_unlock_not_found, leaf_nodes_are_unlocked, compute_unlock_initial_state, completing_constraints_does_not_unlock_dalembert, completing_constraints_unlocks_generalized_coords, completing_work_and_energy_and_constraints_unlocks_dalembert
+- pnpm lint (tsc --noEmit + cargo clippy -D warnings): exits 0
+- Contract C3: compute_unlock signature matches; algorithm matches exactly (completed/in_progress passthrough; not_started leaf node unlocked; not_started all-children-completed node unlocked; otherwise locked); error code db.not_found used for missing tree
+- Contract C1: queries node(id, status) and edge(parent_id, child_id) as specified; unlock status never persisted in DB
+- Out-of-scope: no violations
+- Files: all ticket-listed files modified/created; no extra files touched
