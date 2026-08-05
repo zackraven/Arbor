@@ -1,7 +1,7 @@
 ---
 id: T-008
 phase: 2
-status: queued
+status: implemented
 depends_on: [T-006]
 ---
 
@@ -51,5 +51,28 @@ Before this ticket is dispatched to an implementer, the user must confirm they h
 ## Blocked
 
 ## Implementation notes
+
+Added a single `[[test]]` entry to `/c/Users/Alex/Documents/Projects/Arbor/src-tauri/Cargo.toml`:
+
+```toml
+[[test]]
+name = "t008-large-fixture"
+path = "../tests/T-008/large_fixture.rs"
+```
+
+All 9 acceptance tests passed:
+- `large_fixture_loads` — seed_graph succeeded on the fixture (no cycles, no duplicates)
+- `node_count_in_range` — node count is within 55–65
+- `at_least_3_diamond_merges` — 3+ nodes with 2+ parents
+- `high_fan_in_node_exists` — at least one node with 4+ parents
+- `branch_depth_variance` — max_depth − min_depth ≥ 3
+- `deep_chain_exists` — longest chain has 7+ nodes (6+ edges)
+- `wide_fan_out_exists` — at least one node with 5+ children
+- `at_least_4_categories` — 4+ distinct categories
+- `all_nodes_not_started` — all node statuses are `not_started`
+
+`pnpm lint` (tsc + cargo clippy -D warnings) exited 0.
+
+No nits; no additional abstractions were added beyond what the ticket specified.
 
 ## Verification

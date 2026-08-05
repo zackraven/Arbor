@@ -33,6 +33,7 @@ fn main() {
             arbor_lib::commands::graph::get_graph_log,
             arbor_lib::commands::seed::seed_graph,
             arbor_lib::commands::seed::update_node_status,
+            arbor_lib::commands::unlock::compute_unlock,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

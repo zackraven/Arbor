@@ -32,6 +32,14 @@ path = "../tests/T-002/contract_sync.rs"
 name = "t006-commands"
 path = "../tests/T-006/commands.rs"
 
+[[test]]
+name = "t007-unlock"
+path = "../tests/T-007/unlock.rs"
+
+[[test]]
+name = "t008-large-fixture"
+path = "../tests/T-008/large_fixture.rs"
+
 [profile.release]
 panic = "abort"
 codegen-units = 1

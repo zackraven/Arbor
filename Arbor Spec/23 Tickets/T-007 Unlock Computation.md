@@ -1,7 +1,7 @@
 ---
 id: T-007
 phase: 2
-status: queued
+status: implemented
 depends_on: [T-006]
 ---
 
@@ -67,5 +67,17 @@ None beyond Phase 1.
 ## Blocked
 
 ## Implementation notes
+
+Created `src-tauri/src/commands/unlock.rs` with:
+- `compute_unlock_impl(conn: &Connection, tree_id: &str) -> Result<HashMap<String, String>, AppError>`: the pure computation function used by both tests and the Tauri wrapper. Verifies tree exists (NotFound if absent), queries `node(id, status)` and `edge(parent_id, child_id)` for the tree, builds a `node_id → Vec<child_id>` map, then computes unlock status per node: completed/in_progress pass through; not_started leaf nodes become "unlocked"; not_started interior nodes become "unlocked" iff all children have status="completed", else "locked".
+- `compute_unlock` Tauri command wrapper gated with `#[cfg(feature = "app")]`.
+
+Modified `src-tauri/src/commands/mod.rs` to add `pub mod unlock;`.
+
+Modified `src-tauri/src/main.rs` to register `arbor_lib::commands::unlock::compute_unlock` in `generate_handler!`.
+
+Modified `src-tauri/Cargo.toml` to add `[[test]]` entry for `t007-unlock`.
+
+All 6 acceptance tests pass. `pnpm lint` exits 0. No nits.
 
 ## Verification
