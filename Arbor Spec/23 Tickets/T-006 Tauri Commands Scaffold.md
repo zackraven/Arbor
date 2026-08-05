@@ -1,7 +1,7 @@
 ---
 id: T-006
 phase: 2
-status: rework
+status: implemented
 depends_on: [T-002]
 ---
 

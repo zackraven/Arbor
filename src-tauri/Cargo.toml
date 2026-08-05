@@ -9,6 +9,10 @@ name = "arbor_lib"
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 
+[features]
+default = ["app"]
+app = []
+
 [dependencies]
 tauri = { version = "2", features = [] }
 serde = { version = "1", features = ["derive"] }
@@ -23,6 +27,10 @@ path = "../tests/T-002/migrations.rs"
 [[test]]
 name = "t002-contract-sync"
 path = "../tests/T-002/contract_sync.rs"
+
+[[test]]
+name = "t006-commands"
+path = "../tests/T-006/commands.rs"
 
 [profile.release]
 panic = "abort"

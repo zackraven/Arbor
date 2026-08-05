@@ -16,6 +16,12 @@ pub enum DbError {
 
     #[error("schema integrity check failed: required table missing after migration")]
     SchemaMissing,
+
+    #[error("failed to open database: {0}")]
+    Open(String),
+
+    #[error("failed to set pragma: {0}")]
+    Pragma(String),
 }
 
 /// Tables that must exist after all migrations have been applied.
@@ -65,19 +71,32 @@ pub fn open_or_init(path: &Path) -> Result<rusqlite::Connection, DbError> {
     Ok(conn)
 }
 
+/// Open an in-memory SQLite database, apply pragmas, and run migrations.
+/// Used by test suites (T-006, T-007, T-008) that need a fresh DB per test.
+pub fn open_or_init_memory() -> Result<rusqlite::Connection, DbError> {
+    let conn = rusqlite::Connection::open_in_memory()
+        .map_err(|e| DbError::Open(e.to_string()))?;
+    conn.execute_batch("PRAGMA foreign_keys = ON;")
+        .map_err(|e| DbError::Pragma(e.to_string()))?;
+    conn.execute_batch("PRAGMA journal_mode = WAL;")
+        .map_err(|e| DbError::Pragma(e.to_string()))?;
+    let migrations_dir = migrations_dir_path();
+    migrations::run_migrations(&conn, &migrations_dir)?;
+    Ok(conn)
+}
+
 fn migrations_dir_path() -> std::path::PathBuf {
-    // CARGO_MANIFEST_DIR is available in test builds; in production we use
-    // a path relative to the executable.
-    #[cfg(test)]
+    // CARGO_MANIFEST_DIR is available at compile time in test/dev builds.
+    // In production (release without the env var), fall back to exe-relative.
+    #[cfg(feature = "app")]
     {
-        std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("migrations")
-    }
-    #[cfg(not(test))]
-    {
-        // In production, migrations/ is shipped alongside the binary.
         let exe = std::env::current_exe().unwrap_or_default();
         exe.parent()
             .unwrap_or_else(|| std::path::Path::new("."))
             .join("migrations")
+    }
+    #[cfg(not(feature = "app"))]
+    {
+        std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("migrations")
     }
 }
