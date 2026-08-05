@@ -42,6 +42,8 @@ PreToolUse hooks can deterministically block a tool call before it happens; unli
 3. **Post-edit lint** — after any code edit: run `tsc --noEmit` / `cargo clippy` on the touched area; feed failures straight back. Catches drift at the moment it happens instead of at ticket end.
 4. **Commit gate** — block `git commit` unless the ticket file referenced in the message has `status: implemented|done` (cheap script parsing frontmatter). Gate: `ARBOR_ROLE=architect` bypasses (architect commits reference tickets without implementing them). In non-architect sessions, any `T-NNN` mention in the commit message is gated on the ticket's status.
 5. **Session log** — append tool-call summaries to a per-ticket audit file; makes verifier and Blocked adjudication reviewable.
+6. **Bash guard** — denies command classes that can bypass contract-shield's path-string analysis: interpreters (`node`, `python`, `make`), file-creation (`touch`), non-test shell scripts (`bash`/`sh` without `tests/T-*` prefix), file-modifying git subcommands (`git apply`, `git am`, `git stash pop/apply`), and `patch`. Gate: `ARBOR_ROLE=architect` bypasses. Lives in `.claude/hooks/bash-guard.sh`.
+7. **Git integrity check** — mechanism-agnostic backstop. Runs at commit time; verifies no protected paths appear in the diff regardless of how they were modified (Edit, Write, Bash, `git apply`, external tool, etc.). Catches anything the front-line hooks miss. Gate: `ARBOR_ROLE=architect` bypasses.
 
 ### Guardrail verification protocol (drill)
 

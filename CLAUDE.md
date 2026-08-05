@@ -27,6 +27,7 @@ Every session operates in exactly ONE of four roles. If the user has not stated 
 - May read: the entire vault + codebase.
 - Job: maintain `20 Architecture`, `21 Contracts/`, `22 Build Plan`; write tickets into `23 Tickets/` following `23 Tickets/_Ticket Template.md` exactly; adjudicate Blocked tickets; update contracts (each contract change REQUIRES a decisions-log entry).
 - Never implements tickets in the same session it writes them.
+- **Bypass-for-testing requires authorization.** Deliberate bypass-for-testing (e.g., probing whether a gap exists by exploiting it) requires explicit user authorization before execution. Discovering a novel bypass route is an escalation event, not a step to execute unprompted.
 - **Launch command:** `bash tools/arch.sh` (or `ARBOR_ROLE=architect claude`) — required to bypass the contract-shield and spec-shield hooks, which fire in ALL sessions. Without this env var the shields block all writes to `contracts/`, `Arbor Spec/21 Contracts/`, and `Arbor Spec/00–12` notes, even in an architect session.
 
 ### IMPLEMENTER (this is probably you)
@@ -49,7 +50,7 @@ Every session operates in exactly ONE of four roles. If the user has not stated 
 - Job: automate the implement→verify→commit loop. Reads the ticket queue, finds `queued` tickets with satisfied dependencies, dispatches implementer subagents (via Task tool, `subagent_type: "implementer"`), then verifier subagents, and commits on verifier pass.
 - **Does NOT** write tickets, edit contracts, make architectural decisions, or bypass shields. Runs WITHOUT `ARBOR_ROLE=architect` — all hooks are fully active.
 - **Autonomous decisions (no user escalation):** pick the next dispatchable ticket, dispatch implementer, dispatch verifier after `status: implemented`, commit after `status: done`, move to next ticket.
-- **Must escalate to user:** implementer sets `status: blocked`, verifier sets `status: rework`, commit-gate denies, any hook deny received by the orchestrator itself, queue empty or all remaining tickets blocked/depends-unmet, dependency cycle detected.
+- **Must escalate to user:** implementer sets `status: blocked`, verifier sets `status: rework`, commit-gate denies, any hook deny received by the orchestrator itself, queue empty or all remaining tickets blocked/depends-unmet, dependency cycle detected, discovering a novel hook bypass (a bypass route not previously known is an escalation event, not a step to execute).
 - **HOOK DENY = FULL STOP** applies. The orchestrator is not an architect — it cannot diagnose or fix hooks. On any deny, it stops and reports to the user.
 - **Launch command:** `bash tools/orch.sh` — no `ARBOR_ROLE`, shields fully active, Opus model.
 

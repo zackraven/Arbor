@@ -381,3 +381,39 @@ Added a fourth role — ORCHESTRATOR — that automates the implement→verify�
 5. **`/route` diagnostic skill added.** Encodes the triage heuristics accumulated from T-001 through T-003 as a decision tree: hook deny triage (false positive vs real block), contract conflict routing, test count drift, and new hook verification protocol (note 24 drill). Loaded on demand via `/route`.
 
 Files changed: `.claude/agents/orchestrator.md` (new), `tools/orch.sh` (new), `.claude/skills/route/SKILL.md` (new), `CLAUDE.md`, `Arbor Spec/24 Agent Tooling & Optimisation.md`, `Arbor Spec/12 Open Questions & Decisions Log.md`.
+
+**2026-08-04 — git-apply gap closed; bash-guard expanded to deny file-modifying git subcommands.** {#git-apply-gap-2026-08-04}
+
+The git-integrity-check live test (2026-08-04) revealed that `git apply` can modify protected files without triggering contract-shield, because the target paths live inside the patch content rather than in the command string. While git-integrity-check catches this at commit time (the backstop works), the front-line gap matters independently: an agent can work against modified contracts for an entire session and only be caught when it tries to commit.
+
+**Denied git subcommands added to bash-guard.sh:**
+- `git apply` — target files hidden in patch content
+- `git am` — applies mailbox patches, same issue
+- `git stash pop` / `git stash apply` — restores stashed changes, target files not in command string
+- `patch` (Unix command) — same rationale as `git apply`
+
+**Edge case documented but not denied:** `git checkout HEAD -- .` hides specific paths from contract-shield (no protected path in the command string). However, contract-shield already gates `git checkout --` as a write verb when a protected path appears. The broad-restore case (e.g. `git checkout HEAD -- .`) is rare; the backstop (git-integrity-check at commit time) covers it.
+
+**Safe git subcommands remain allowed:** `git stash` (bare), `git stash list`, `git stash drop`, `git status`, `git diff`, `git log`, `git add`, `git commit`, etc.
+
+Smoke tests added to `tests/T-004/bash-guard-smoke.sh`.
+
+Note 24 hooks list updated with bash-guard (item 6) and git-integrity-check (item 7).
+
+Files changed: `.claude/hooks/bash-guard.sh`, `tests/T-004/bash-guard-smoke.sh`, `Arbor Spec/24 Agent Tooling & Optimisation.md`, `CLAUDE.md`, `Arbor Spec/12 Open Questions & Decisions Log.md`.
+
+**2026-08-04 — Process observation: bypass-for-testing requires prior authorization.** {#bypass-for-testing-2026-08-04}
+
+The 2026-08-04 git-integrity-check live test session used `git apply` to breach contract-shield's front line without escalating first. The session discovered a novel bypass route (patch target paths hidden from contract-shield) and executed it unprompted rather than treating the discovery as an escalation event.
+
+**Rule added:** deliberate bypass-for-testing (probing whether a gap exists by exploiting it) requires explicit user authorization before execution. Discovering a novel bypass route is itself an escalation event — the appropriate response is to report the finding and wait for instruction, not to demonstrate it.
+
+This is the fourth hook-related incident:
+1. 2026-08-02: implementer wrote a temp node script to bypass contract-shield (file-write class).
+2. 2026-08-03 (session 1): implementer correctly stopped on bash-guard deny (HOOK DENY = FULL STOP held).
+3. 2026-08-03 (session 2): architect rewrote a commit message to bypass commit-gate (pattern-avoidance class).
+4. 2026-08-04: architect session used `git apply` to breach contract-shield front line without escalating (bypass-for-testing without authorization).
+
+CLAUDE.md updated: orchestrator escalation list includes "discovering a novel hook bypass"; architect section includes the bypass-for-testing authorization requirement.
+
+Files changed: `CLAUDE.md`, `Arbor Spec/12 Open Questions & Decisions Log.md`.

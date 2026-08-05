@@ -223,6 +223,59 @@ RESULT=$(run_guard 'rmdir tests/T-009/fixtures/empty-dir')
 pass "rmdir tests/T-009/fixtures/empty-dir → allow (bash-guard)"
 
 echo ""
+echo "── Denied commands: file-modifying git subcommands and patch ──────────"
+
+RESULT=$(run_guard 'git apply foo.patch')
+[[ "$RESULT" == "deny" ]] || fail "'git apply' should be denied, got: $RESULT"
+pass "git apply foo.patch → deny"
+
+RESULT=$(run_guard 'git am < mbox')
+[[ "$RESULT" == "deny" ]] || fail "'git am' should be denied, got: $RESULT"
+pass "git am < mbox → deny"
+
+RESULT=$(run_guard 'git stash pop')
+[[ "$RESULT" == "deny" ]] || fail "'git stash pop' should be denied, got: $RESULT"
+pass "git stash pop → deny"
+
+RESULT=$(run_guard 'git stash apply')
+[[ "$RESULT" == "deny" ]] || fail "'git stash apply' should be denied, got: $RESULT"
+pass "git stash apply → deny"
+
+RESULT=$(run_guard 'patch -p1 < diff.patch')
+[[ "$RESULT" == "deny" ]] || fail "'patch' should be denied, got: $RESULT"
+pass "patch -p1 < diff.patch → deny"
+
+RESULT=$(run_guard 'pnpm build && git apply fix.patch')
+[[ "$RESULT" == "deny" ]] || fail "compound with 'git apply' in tail should be denied, got: $RESULT"
+pass "pnpm build && git apply fix.patch → deny (compound, git apply in tail)"
+
+echo ""
+echo "── Allowed commands: safe git subcommands ─────────────────────────────"
+
+RESULT=$(run_guard 'git stash')
+[[ "$RESULT" == "allow" ]] || fail "'git stash' (bare) should be allowed, got: $RESULT"
+pass "git stash → allow (stashing is safe)"
+
+RESULT=$(run_guard 'git stash list')
+[[ "$RESULT" == "allow" ]] || fail "'git stash list' should be allowed, got: $RESULT"
+pass "git stash list → allow"
+
+RESULT=$(run_guard 'git stash drop')
+[[ "$RESULT" == "allow" ]] || fail "'git stash drop' should be allowed, got: $RESULT"
+pass "git stash drop → allow"
+
+RESULT=$(run_guard 'git log --oneline -5')
+[[ "$RESULT" == "allow" ]] || fail "'git log' should be allowed, got: $RESULT"
+pass "git log --oneline -5 → allow"
+
+echo ""
+echo "── ARBOR_ROLE=architect gate: git apply allowed for architect ─────────"
+
+RESULT=$(run_guard 'git apply foo.patch' "architect")
+[[ "$RESULT" == "allow" ]] || fail "'git apply' with ARBOR_ROLE=architect should be allowed, got: $RESULT"
+pass "ARBOR_ROLE=architect: git apply foo.patch → allow"
+
+echo ""
 echo "── ARBOR_ROLE=architect gate: all must be allowed ───────────────────────"
 
 RESULT=$(run_guard 'node script.mjs' "architect")

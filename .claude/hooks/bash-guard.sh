@@ -128,6 +128,43 @@ while IFS= read -r part; do
                 deny_bash "bash-guard: '$first $second' is not permitted. Only 'bash tests/T-NNN/...' test scripts are allowed. If you need to run another script, STOP — write it under ## Blocked."
             fi
             ;;
+        git)
+            # git subcommands that modify working-tree files with targets hidden
+            # in patch content or stash state — contract-shield cannot see the
+            # target paths in the command string.
+            #
+            # Edge case NOT denied: `git checkout HEAD -- .` hides specific
+            # paths, but contract-shield already gates `git checkout --` as a
+            # write verb when a protected path appears. The broad-restore case
+            # (no specific path) is rare; the backstop (git-integrity-check at
+            # commit time) covers it.
+            second=$(echo "$part" | awk '{print $2}')
+            case "$second" in
+                apply)
+                    deny_bash "bash-guard: 'git apply' is not permitted. Patch target files are hidden inside patch content — contract-shield cannot gate them. HOOK DENY = FULL STOP."
+                    ;;
+                am)
+                    deny_bash "bash-guard: 'git am' is not permitted. Mailbox patch targets are hidden inside patch content. HOOK DENY = FULL STOP."
+                    ;;
+                stash)
+                    third=$(echo "$part" | awk '{print $3}')
+                    case "$third" in
+                        pop|apply)
+                            deny_bash "bash-guard: 'git stash $third' is not permitted. Stash restore targets are not visible in the command string. HOOK DENY = FULL STOP."
+                            ;;
+                        *)
+                            : # allow — git stash, git stash list, git stash drop, etc.
+                            ;;
+                    esac
+                    ;;
+                *)
+                    : # allow — git status, git diff, git log, git add, git commit, etc.
+                    ;;
+            esac
+            ;;
+        patch)
+            deny_bash "bash-guard: 'patch' is not permitted. Patch target files are hidden inside patch content — contract-shield cannot gate them. HOOK DENY = FULL STOP."
+            ;;
     esac
 done < <(echo "$CMD" | tr ';&|' '\n')
 
