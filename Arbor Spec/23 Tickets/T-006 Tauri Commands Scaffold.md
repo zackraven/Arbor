@@ -20,7 +20,7 @@ None beyond Phase 1 (Rust stable, pnpm, MinGW64 GCC).
 
 ## Files
 **Create:** `src-tauri/src/commands/mod.rs`, `src-tauri/src/commands/trees.rs`, `src-tauri/src/commands/graph.rs`, `src-tauri/src/commands/seed.rs`, `src-tauri/src/errors.rs`
-**Modify:** `src-tauri/src/lib.rs` (register commands + add `mod commands; mod errors;` + manage DB connection as Tauri state), `src-tauri/Cargo.toml` (add `serde_json = "1"` to dependencies if not already present; add `[[test]]` entries for T-006)
+**Modify:** `src-tauri/src/lib.rs` (add `mod commands; mod errors;` + `DbConn` type), `src-tauri/src/main.rs` (move `run()` here with DB state management + `generate_handler!`, gated `#[cfg(feature = "app")]`), `src-tauri/src/db/mod.rs` (add `open_or_init_memory`, update `migrations_dir_path` to use feature flag), `src-tauri/Cargo.toml` (add `serde_json = "1"`, `[features] default = ["app"]`, `[[test]]` entry for T-006)
 
 ## Steps
 
@@ -140,7 +140,4 @@ None beyond Phase 1 (Rust stable, pnpm, MinGW64 GCC).
 
 Verification: fail — 2026-08-05
 Violations:
-- [integrity check]: protected paths appear in git diff HEAD — `.claude/settings.local.json`, `.claude/skills/route/SKILL.md`, `Arbor Spec/21 Contracts/21 Contracts Index.md`. The verifier integrity check rule states: "Any protected file in the diff signals a shield bypass and is an automatic fail." The architect Phase 1→2 boundary work (spec reconciliation, C3 contract creation, CLAUDE.md updates, .claude/ settings changes) was left uncommitted before the implementer session began. The diff therefore contains intermingled architect changes and T-006 implementation changes with no commit boundary separating them. The verifier cannot certify a diff that contains protected-path modifications.
-- [process]: CLAUDE.md workflow (Architect → commit → Implementer → commit → Verifier) requires each phase to produce a committed baseline before the next begins. HEAD = b240064 (T-002) at session start; all Phase 1→2 boundary architect work and all T-006 implementation changes are uncommitted working-tree modifications with no commit boundary separating them.
-
-Note (informational): the T-006 implementation itself appears technically correct — 14/14 T-006 tests pass, 9/9 T-002 tests pass (no regression), pnpm lint exits 0, error codes match the C3 contract, no out-of-scope code found, and the feature-flag deviation documented in Implementation notes is architecturally sound. The violation is solely commit-hygiene: architect changes must form a committed baseline before the implementer session is dispatched.
+- [out-of-scope file modified]: src-tauri/src/main.rs appears in the T-006 commit diff but is not listed in the ticket's Files section (which specifies Modify: src-tauri/src/lib.rs, src-tauri/src/db/mod.rs, src-tauri/Cargo.toml). CLAUDE.md rule: implementers "Create/modify ONLY the files the ticket lists." The implementation notes describe this as an "architect-applied fix" but the modification appears in the T-006 implementation commit (550277a), not in the architect commit (92aba34).
