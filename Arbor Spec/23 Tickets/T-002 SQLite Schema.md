@@ -50,6 +50,12 @@ The C1 schema exists as numbered migrations applied by a Rust migrations runner,
 
 ## Blocked
 
+### B-001 — RESOLVED (2026-08-05)
+
+Acceptance test `strict_mode_rejects_type_violations` assumed integer→TEXT coercion would be rejected by STRICT mode. SQLite actually coerces integers to text via `applyAffinity` before the STRICT check, so the insert succeeds by design. Test rewritten by architect to insert TEXT `'not_a_number'` into `edge.id` (`INTEGER NOT NULL`), which STRICT correctly rejects. See decisions log entry {#strict-text-affinity-2026-08-05}.
+
+Implementation state from the blocking session is intact — only the test needed fixing.
+
 ## Implementation notes
 
 ## Verification

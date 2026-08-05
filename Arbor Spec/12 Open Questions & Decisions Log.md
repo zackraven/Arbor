@@ -417,3 +417,13 @@ This is the fourth hook-related incident:
 CLAUDE.md updated: orchestrator escalation list includes "discovering a novel hook bypass"; architect section includes the bypass-for-testing authorization requirement.
 
 Files changed: `CLAUDE.md`, `Arbor Spec/12 Open Questions & Decisions Log.md`.
+
+**2026-08-05 — T-002 test fix: SQLite TEXT affinity coercion in STRICT tables.** {#strict-text-affinity-2026-08-05}
+
+The acceptance test `strict_mode_rejects_type_violations` in `tests/T-002/migrations.rs` attempted to insert the integer literal `42` into `node.id` (a `TEXT NOT NULL` column in a `STRICT` table), expecting rejection. SQLite's actual behavior: `applyAffinity` converts integer values to text strings when the target column has `TEXT` affinity, *before* the STRICT type check runs. The insert therefore succeeds — this is documented, intentional SQLite behavior, not a bug.
+
+**Fix:** replaced the test to insert the TEXT value `'not_a_number'` into `edge.id` (an `INTEGER NOT NULL` column in a `STRICT` table). STRICT mode correctly rejects text-to-integer coercion for `INTEGER` columns. The test now inserts two node rows to satisfy edge FK constraints.
+
+**Takeaway:** in SQLite STRICT tables, type enforcement is asymmetric — integers coerce to text (TEXT affinity), but text does not coerce to integer. Tests for STRICT mode should use the text→integer direction.
+
+Files changed: `tests/T-002/migrations.rs`, `Arbor Spec/23 Tickets/T-002 SQLite Schema.md`, `Arbor Spec/12 Open Questions & Decisions Log.md`.

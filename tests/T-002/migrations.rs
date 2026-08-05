@@ -116,16 +116,29 @@ fn strict_mode_rejects_type_violations() {
     )
     .expect("valid tree insert must succeed");
 
-    // STRICT mode: trying to insert an integer into a TEXT column must fail
+    // Insert two node rows so edge FK constraints are satisfied
+    conn.execute(
+        "INSERT INTO node (id, tree_id, title, one_liner, category, outcomes_json, created_at, updated_at)
+         VALUES ('n1', 't1', 'N1', 'n', 'cat', '[]', '2026-01-01T00:00:00Z', '2026-01-01T00:00:00Z')",
+        [],
+    )
+    .expect("valid node n1 insert must succeed");
+    conn.execute(
+        "INSERT INTO node (id, tree_id, title, one_liner, category, outcomes_json, created_at, updated_at)
+         VALUES ('n2', 't1', 'N2', 'n', 'cat', '[]', '2026-01-01T00:00:00Z', '2026-01-01T00:00:00Z')",
+        [],
+    )
+    .expect("valid node n2 insert must succeed");
+
+    // STRICT mode: trying to insert a TEXT value into an INTEGER NOT NULL column must fail
     let result = conn.execute(
-        "INSERT INTO node
-         (id, tree_id, title, one_liner, category, outcomes_json, created_at, updated_at)
-         VALUES (42, 't1', 'N', 'n', 'cat', '[]', '2026-01-01T00:00:00Z', '2026-01-01T00:00:00Z')",
+        "INSERT INTO edge (id, tree_id, parent_id, child_id, justification, created_at)
+         VALUES ('not_a_number', 't1', 'n1', 'n2', 'test', '2026-01-01T00:00:00Z')",
         [],
     );
     assert!(
         result.is_err(),
-        "STRICT mode must reject integer 42 in TEXT column node.id"
+        "STRICT mode must reject TEXT 'not_a_number' in INTEGER column edge.id"
     );
 }
 
