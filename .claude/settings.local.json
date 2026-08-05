@@ -4,7 +4,8 @@
       "Bash(cd:*)",
       "WebSearch",
       "Bash(MSYS_NO_PATHCONV=1 bash:*)",
-      "Bash(git:*)"
+      "Bash(git:*)",
+      "Bash(grep \"blocked\":*)"
     ]
   }
 }

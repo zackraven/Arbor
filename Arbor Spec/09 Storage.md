@@ -31,20 +31,20 @@ vault/
 
 ## 2. State (SQLite, via Tauri backend)
 
-Tables (sketch):
+Tables — the authoritative schema is [[21 Contracts/C1 SQLite Schema]] (hardened from this sketch during Phase 1). Key differences from the original sketch: singular table names (`tree` not `trees`); `id` is the slug (no separate `slug` column); `node.status` is `not_started|in_progress|completed` (never `locked`/`unlocked`/`pack_pending`/`pack_ready`); all tables use STRICT mode; all datetimes are ISO 8601 UTC TEXT; JSON columns are `_json`-suffixed TEXT validated by the Rust layer. See C1 for the full DDL.
 
 ```
-trees        (id, slug, title, status, graph_version, created_at)
-nodes        (id, tree_id, slug, title, one_liner, category, status, provenance)
-edges        (parent_id, child_id, justification, provenance)
-graph_log    (tree_id, version, mutation, rationale, ts)      -- changelog incl. repair
-progress     (node_id, state, started_at, completed_at, diagnostic_record)
-cards        (id, node_id, template_id, fsrs_state...)         -- one global deck
-reviews      (card_id, ts, grade, source: review|diagnostic|test)
-repair_reports (id, node_id, suspected_concept, evidence, ts, adjudicated, verdict)
-tests        (id, tree_id, config, score, ts)
-build_state  (tree_id, stage, artifact_checkpoints...)         -- resumability
-settings     (key, value)                                      -- toggles, baseline choice
+tree         (id, title, scope_json, version, created_at, updated_at)
+node         (id, tree_id, title, one_liner, category, outcomes_json, status, pack_path, provenance_json, created_at, updated_at)
+edge         (id, tree_id, parent_id, child_id, justification, created_at)
+graph_log    (id, tree_id, tree_version, change_type, entity_id, payload_json, actor, created_at)
+progress     (id, node_id, session_id, started_at, completed_at, segments_done_json, diagnostic_result_json)
+card         (id, node_id, question_type, template_ref, param_seed, fsrs_state_json, due_at, created_at, updated_at)
+review       (id, card_id, reviewed_at, rating, answer_json, source)
+repair_report (id, tree_id, node_id, session_id, category, payload_json, status, resolution_json, created_at, reviewed_at)
+test         (id, tree_id, scope_json, count, difficulty, started_at, completed_at, score, out_of, result_json)
+build_state  (tree_id, stage, status, checkpoint_json, started_at, updated_at)
+setting      (key, value_json, updated_at)
 ```
 
 - **Unlock status is never a table** — computed live from `edges` + `progress` ([[03 Graph Model]]).

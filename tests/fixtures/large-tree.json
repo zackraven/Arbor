@@ -1,0 +1,613 @@
+{
+  "id": "classical-to-lagrangian-mechanics",
+  "title": "Classical Mechanics → Lagrangian Mechanics",
+  "scope": {
+    "top_bubble": "Classical mechanics from Newtonian foundations through Lagrangian and Hamiltonian formulations",
+    "categories": [
+      "Mathematical foundations",
+      "Newtonian mechanics",
+      "Reference frames",
+      "Oscillations",
+      "Rotational dynamics",
+      "Central forces",
+      "Lagrangian mechanics",
+      "Hamiltonian mechanics"
+    ]
+  },
+  "nodes": [
+    {
+      "id": "basic-calculus",
+      "title": "Basic Calculus",
+      "one_liner": "Differentiation and integration of single-variable functions",
+      "category": "Mathematical foundations",
+      "outcomes": ["Compute derivatives using standard rules", "Evaluate definite and indefinite integrals", "Apply the fundamental theorem of calculus"],
+      "status": "not_started"
+    },
+    {
+      "id": "vector-algebra",
+      "title": "Vector Algebra",
+      "one_liner": "Vector operations including dot product, cross product, and component decomposition",
+      "category": "Mathematical foundations",
+      "outcomes": ["Perform dot and cross products", "Decompose vectors into components", "Apply vector identities to physical problems"],
+      "status": "not_started"
+    },
+    {
+      "id": "coordinate-systems",
+      "title": "Coordinate Systems",
+      "one_liner": "Polar, cylindrical, and spherical coordinate systems with basis vectors and transformations",
+      "category": "Mathematical foundations",
+      "outcomes": ["Convert between Cartesian and curvilinear coordinates", "Express velocity and acceleration in polar coordinates", "Write area and volume elements in each system"],
+      "status": "not_started"
+    },
+    {
+      "id": "differential-equations",
+      "title": "Ordinary Differential Equations",
+      "one_liner": "Solution methods for first- and second-order linear ODEs with constant coefficients",
+      "category": "Mathematical foundations",
+      "outcomes": ["Solve first-order separable and linear ODEs", "Solve second-order constant-coefficient ODEs", "Identify general vs particular solutions"],
+      "status": "not_started"
+    },
+    {
+      "id": "partial-derivatives",
+      "title": "Partial Derivatives",
+      "one_liner": "Differentiation of multivariable functions and the multivariable chain rule",
+      "category": "Mathematical foundations",
+      "outcomes": ["Compute partial derivatives of multivariable functions", "Apply the multivariable chain rule", "Find total differentials"],
+      "status": "not_started"
+    },
+    {
+      "id": "linear-algebra-basics",
+      "title": "Linear Algebra Basics",
+      "one_liner": "Matrices, eigenvalues, eigenvectors, and diagonalisation",
+      "category": "Mathematical foundations",
+      "outcomes": ["Multiply matrices and find determinants", "Compute eigenvalues and eigenvectors", "Diagonalise symmetric matrices"],
+      "status": "not_started"
+    },
+    {
+      "id": "multiple-integrals",
+      "title": "Multiple Integrals",
+      "one_liner": "Double and triple integrals with change of variables",
+      "category": "Mathematical foundations",
+      "outcomes": ["Evaluate double integrals over regions", "Apply the Jacobian for coordinate changes", "Compute triple integrals in cylindrical and spherical coordinates"],
+      "status": "not_started"
+    },
+    {
+      "id": "taylor-series",
+      "title": "Taylor Series",
+      "one_liner": "Power series expansion of functions about a point",
+      "category": "Mathematical foundations",
+      "outcomes": ["Expand functions as Taylor series", "Determine radius of convergence", "Use Taylor expansion to approximate functions near equilibrium"],
+      "status": "not_started"
+    },
+    {
+      "id": "fourier-series",
+      "title": "Fourier Series",
+      "one_liner": "Decomposition of periodic functions into sinusoidal components",
+      "category": "Mathematical foundations",
+      "outcomes": ["Compute Fourier coefficients", "Represent a periodic driving force as a sum of harmonics", "Apply Parseval's theorem"],
+      "status": "not_started"
+    },
+    {
+      "id": "calculus-of-variations",
+      "title": "Calculus of Variations",
+      "one_liner": "Finding functions that extremise functionals defined as integrals",
+      "category": "Mathematical foundations",
+      "outcomes": ["Define a functional and state the extremisation problem", "Derive the Euler-Lagrange equation for a general functional", "Solve the brachistochrone and catenary problems"],
+      "status": "not_started"
+    },
+    {
+      "id": "legendre-transform",
+      "title": "Legendre Transform",
+      "one_liner": "Transformation replacing a function of one variable with a function of its conjugate variable",
+      "category": "Mathematical foundations",
+      "outcomes": ["Define the Legendre transform and its inverse", "Apply it to convert between Lagrangian and Hamiltonian", "Identify conjugate variable pairs"],
+      "status": "not_started"
+    },
+    {
+      "id": "newtons-laws",
+      "title": "Newton's Laws of Motion",
+      "one_liner": "The three foundational laws relating force, mass, and acceleration",
+      "category": "Newtonian mechanics",
+      "outcomes": ["State and apply Newton's three laws", "Draw free-body diagrams and solve force-balance problems", "Identify action-reaction pairs"],
+      "status": "not_started"
+    },
+    {
+      "id": "momentum-and-impulse",
+      "title": "Momentum and Impulse",
+      "one_liner": "Linear momentum conservation and the impulse-momentum theorem",
+      "category": "Newtonian mechanics",
+      "outcomes": ["Apply conservation of momentum to collisions", "Calculate impulse from force-time profiles", "Distinguish elastic from inelastic collisions"],
+      "status": "not_started"
+    },
+    {
+      "id": "friction-and-contact",
+      "title": "Friction and Contact Forces",
+      "one_liner": "Static and kinetic friction, normal forces, and constraint forces",
+      "category": "Newtonian mechanics",
+      "outcomes": ["Apply Coulomb friction model", "Solve inclined-plane and pulley problems", "Identify when static friction transitions to kinetic"],
+      "status": "not_started"
+    },
+    {
+      "id": "projectile-motion",
+      "title": "Projectile Motion",
+      "one_liner": "Motion under uniform gravity with no air resistance",
+      "category": "Newtonian mechanics",
+      "outcomes": ["Derive trajectory equations from Newton's second law", "Calculate range, height, and flight time", "Analyse projectile problems in vector form"],
+      "status": "not_started"
+    },
+    {
+      "id": "circular-motion",
+      "title": "Circular Motion",
+      "one_liner": "Uniform and non-uniform motion along circular paths",
+      "category": "Newtonian mechanics",
+      "outcomes": ["Derive centripetal acceleration", "Apply Newton's second law in radial-tangential coordinates", "Solve banked-curve and conical-pendulum problems"],
+      "status": "not_started"
+    },
+    {
+      "id": "work-energy-theorem",
+      "title": "Work-Energy Theorem",
+      "one_liner": "Net work equals change in kinetic energy",
+      "category": "Newtonian mechanics",
+      "outcomes": ["Derive the work-energy theorem from Newton's second law", "Calculate work done by variable forces via integration", "Apply the theorem to multi-step mechanical problems"],
+      "status": "not_started"
+    },
+    {
+      "id": "potential-energy",
+      "title": "Potential Energy",
+      "one_liner": "Energy stored in configuration, defined for conservative forces",
+      "category": "Newtonian mechanics",
+      "outcomes": ["Define potential energy as negative work done by a conservative force", "Derive gravitational and elastic potential energy", "Sketch and interpret potential energy curves"],
+      "status": "not_started"
+    },
+    {
+      "id": "conservative-forces",
+      "title": "Conservative Forces",
+      "one_liner": "Forces whose work is path-independent, expressible as gradients of scalar potentials",
+      "category": "Newtonian mechanics",
+      "outcomes": ["Test whether a force is conservative via the curl condition", "Derive force from a potential energy function", "Identify non-conservative forces and their effects on energy budgets"],
+      "status": "not_started"
+    },
+    {
+      "id": "energy-conservation",
+      "title": "Energy Conservation",
+      "one_liner": "Total mechanical energy is constant when only conservative forces act",
+      "category": "Newtonian mechanics",
+      "outcomes": ["Derive conservation of energy from the work-energy theorem", "Solve problems using energy methods instead of force methods", "Identify when energy conservation applies and when it does not"],
+      "status": "not_started"
+    },
+    {
+      "id": "center-of-mass",
+      "title": "Centre of Mass",
+      "one_liner": "Mass-weighted average position and its role in multi-body dynamics",
+      "category": "Newtonian mechanics",
+      "outcomes": ["Compute the centre of mass of discrete and continuous distributions", "Apply the centre-of-mass equation of motion", "Separate internal and external forces in multi-body systems"],
+      "status": "not_started"
+    },
+    {
+      "id": "reference-frames",
+      "title": "Reference Frames",
+      "one_liner": "Inertial frames, Galilean transformations, and the principle of relativity",
+      "category": "Reference frames",
+      "outcomes": ["Distinguish inertial from non-inertial frames", "Apply Galilean velocity and acceleration transformations", "State Newton's laws in different inertial frames"],
+      "status": "not_started"
+    },
+    {
+      "id": "non-inertial-frames",
+      "title": "Non-Inertial Frames",
+      "one_liner": "Fictitious forces arising in accelerating reference frames",
+      "category": "Reference frames",
+      "outcomes": ["Derive the equation of motion in a linearly accelerating frame", "Identify centrifugal and Coriolis terms", "Solve problems in the accelerating-elevator frame"],
+      "status": "not_started"
+    },
+    {
+      "id": "rotating-reference-frames",
+      "title": "Rotating Reference Frames",
+      "one_liner": "Kinematics and dynamics in frames rotating with constant angular velocity",
+      "category": "Reference frames",
+      "outcomes": ["Derive the five-term acceleration formula in a rotating frame", "Identify centrifugal and Coriolis pseudo-forces", "Transform equations of motion between rotating and inertial frames"],
+      "status": "not_started"
+    },
+    {
+      "id": "coriolis-force",
+      "title": "Coriolis Force",
+      "one_liner": "Velocity-dependent fictitious force deflecting motion in rotating frames",
+      "category": "Reference frames",
+      "outcomes": ["Derive the Coriolis acceleration for motion on Earth's surface", "Explain Foucault pendulum deflection", "Calculate trajectory deflection of a projectile due to Earth's rotation"],
+      "status": "not_started"
+    },
+    {
+      "id": "simple-harmonic-motion",
+      "title": "Simple Harmonic Motion",
+      "one_liner": "Oscillatory motion about a stable equilibrium under a linear restoring force",
+      "category": "Oscillations",
+      "outcomes": ["Derive the SHM equation from Hooke's law", "Express solutions in terms of amplitude, frequency, and phase", "Relate SHM to energy oscillation between kinetic and potential"],
+      "status": "not_started"
+    },
+    {
+      "id": "damped-oscillations",
+      "title": "Damped Oscillations",
+      "one_liner": "Oscillatory motion with energy dissipation via a velocity-dependent drag force",
+      "category": "Oscillations",
+      "outcomes": ["Solve the damped-oscillator ODE for under-, critically-, and over-damped cases", "Define the quality factor Q", "Sketch the amplitude envelope for each damping regime"],
+      "status": "not_started"
+    },
+    {
+      "id": "driven-oscillations",
+      "title": "Driven Oscillations and Resonance",
+      "one_liner": "Steady-state response of a damped oscillator to a periodic driving force",
+      "category": "Oscillations",
+      "outcomes": ["Derive the steady-state amplitude and phase as functions of driving frequency", "Locate the resonance peak and its width in terms of Q", "Decompose a general periodic drive into Fourier components"],
+      "status": "not_started"
+    },
+    {
+      "id": "coupled-oscillations",
+      "title": "Coupled Oscillations",
+      "one_liner": "Two or more oscillators linked by coupling forces",
+      "category": "Oscillations",
+      "outcomes": ["Set up the coupled equations of motion in matrix form", "Find normal-mode frequencies from the eigenvalue problem", "Express general motion as a superposition of normal modes"],
+      "status": "not_started"
+    },
+    {
+      "id": "normal-modes",
+      "title": "Normal Modes",
+      "one_liner": "Collective oscillation patterns in which all parts move at the same frequency",
+      "category": "Oscillations",
+      "outcomes": ["Define normal modes and normal coordinates", "Diagonalise the mass-and-spring matrix to find mode frequencies", "Relate initial conditions to mode amplitudes"],
+      "status": "not_started"
+    },
+    {
+      "id": "stability-of-equilibria",
+      "title": "Stability of Equilibria",
+      "one_liner": "Classifying equilibrium points as stable, unstable, or neutral via the potential energy curvature",
+      "category": "Oscillations",
+      "outcomes": ["Find equilibrium points from dV/dx = 0", "Classify stability from the sign of d²V/dx²", "Linearise the equation of motion near a stable equilibrium to obtain SHM"],
+      "status": "not_started"
+    },
+    {
+      "id": "angular-velocity",
+      "title": "Angular Velocity and Acceleration",
+      "one_liner": "Rotational kinematics: angular displacement, velocity, and acceleration as vectors",
+      "category": "Rotational dynamics",
+      "outcomes": ["Define angular velocity as a vector along the rotation axis", "Relate linear and angular velocity via v = ω × r", "Apply rotational kinematic equations for constant angular acceleration"],
+      "status": "not_started"
+    },
+    {
+      "id": "torque",
+      "title": "Torque",
+      "one_liner": "Rotational analogue of force: τ = r × F",
+      "category": "Rotational dynamics",
+      "outcomes": ["Compute torque from force and lever arm", "Apply the rotational form of Newton's second law τ = Iα", "Solve static-equilibrium problems with torques"],
+      "status": "not_started"
+    },
+    {
+      "id": "moment-of-inertia",
+      "title": "Moment of Inertia",
+      "one_liner": "Resistance to angular acceleration, depending on mass distribution relative to the rotation axis",
+      "category": "Rotational dynamics",
+      "outcomes": ["Compute moments of inertia for simple bodies by integration", "Use the parallel-axis and perpendicular-axis theorems", "Relate moment of inertia to rotational kinetic energy"],
+      "status": "not_started"
+    },
+    {
+      "id": "parallel-axis-theorem",
+      "title": "Parallel Axis Theorem",
+      "one_liner": "Relating the moment of inertia about any axis to that about the centre-of-mass axis",
+      "category": "Rotational dynamics",
+      "outcomes": ["State and prove the parallel-axis theorem", "Apply it to compute moments about displaced axes", "Use the perpendicular-axis theorem for planar bodies"],
+      "status": "not_started"
+    },
+    {
+      "id": "angular-momentum",
+      "title": "Angular Momentum",
+      "one_liner": "Rotational analogue of linear momentum: L = r × p = Iω",
+      "category": "Rotational dynamics",
+      "outcomes": ["Compute angular momentum for point particles and rigid bodies", "Apply conservation of angular momentum when net torque is zero", "Analyse variable-inertia systems like spinning ice skaters"],
+      "status": "not_started"
+    },
+    {
+      "id": "rigid-body-rotation",
+      "title": "Rigid Body Rotation",
+      "one_liner": "Combined translational and rotational motion of extended rigid bodies",
+      "category": "Rotational dynamics",
+      "outcomes": ["Apply Newton's second law for rotation and translation simultaneously", "Solve rolling-without-slipping problems", "Use energy methods for combined translation and rotation"],
+      "status": "not_started"
+    },
+    {
+      "id": "precession-and-gyroscopes",
+      "title": "Precession and Gyroscopes",
+      "one_liner": "Torque-induced precession of spinning bodies and gyroscopic stability",
+      "category": "Rotational dynamics",
+      "outcomes": ["Derive the precession rate of a spinning top under gravity", "Explain gyroscopic stability qualitatively and quantitatively", "Analyse nutation as a perturbation on steady precession"],
+      "status": "not_started"
+    },
+    {
+      "id": "gravitational-force",
+      "title": "Gravitational Force",
+      "one_liner": "Newton's law of universal gravitation and gravitational potential energy",
+      "category": "Central forces",
+      "outcomes": ["State Newton's law of gravitation", "Derive gravitational potential energy", "Apply the shell theorem for spherically symmetric bodies"],
+      "status": "not_started"
+    },
+    {
+      "id": "reduced-mass",
+      "title": "Reduced Mass",
+      "one_liner": "Transforming a two-body problem into an equivalent one-body problem",
+      "category": "Central forces",
+      "outcomes": ["Derive the reduced mass μ = m₁m₂/(m₁+m₂)", "Separate centre-of-mass and relative coordinates", "Rewrite the two-body equation of motion as a one-body problem"],
+      "status": "not_started"
+    },
+    {
+      "id": "two-body-problem",
+      "title": "Two-Body Central Force Problem",
+      "one_liner": "Complete solution of two bodies interacting via a central force",
+      "category": "Central forces",
+      "outcomes": ["Reduce the two-body problem using centre-of-mass and relative coordinates", "Identify conserved quantities (energy, angular momentum)", "Classify orbits by energy and angular momentum"],
+      "status": "not_started"
+    },
+    {
+      "id": "effective-potential",
+      "title": "Effective Potential",
+      "one_liner": "Reducing the radial equation of motion to a one-dimensional energy problem",
+      "category": "Central forces",
+      "outcomes": ["Derive the effective potential including the centrifugal barrier", "Sketch V_eff(r) and identify turning points", "Classify bound and unbound orbits from V_eff"],
+      "status": "not_started"
+    },
+    {
+      "id": "orbit-equation",
+      "title": "Orbit Equation",
+      "one_liner": "Deriving the shape of orbits under a central force using the Binet equation",
+      "category": "Central forces",
+      "outcomes": ["Derive the orbit equation r(θ) for an inverse-square force", "Identify conic sections from the eccentricity", "Relate orbital parameters to energy and angular momentum"],
+      "status": "not_started"
+    },
+    {
+      "id": "kepler-orbits",
+      "title": "Kepler's Laws and Orbits",
+      "one_liner": "Elliptical orbits, equal areas, and the period-semimajor axis relation",
+      "category": "Central forces",
+      "outcomes": ["Derive all three of Kepler's laws from Newton's gravitation", "Calculate orbital period and velocity for elliptical orbits", "Apply Kepler's third law to planetary and satellite motion"],
+      "status": "not_started"
+    },
+    {
+      "id": "scattering-theory",
+      "title": "Scattering and Cross Sections",
+      "one_liner": "Deflection of particles by a central force and the concept of differential cross section",
+      "category": "Central forces",
+      "outcomes": ["Define impact parameter and scattering angle", "Derive the Rutherford scattering cross section", "Relate differential cross section to deflection function"],
+      "status": "not_started"
+    },
+    {
+      "id": "constraints-and-degrees-of-freedom",
+      "title": "Constraints and Degrees of Freedom",
+      "one_liner": "How holonomic and non-holonomic constraints reduce the configuration space",
+      "category": "Lagrangian mechanics",
+      "outcomes": ["Classify holonomic and non-holonomic constraints", "Count degrees of freedom for a constrained system", "Express constraints as equations relating coordinates"],
+      "status": "not_started"
+    },
+    {
+      "id": "generalized-coordinates",
+      "title": "Generalized Coordinates",
+      "one_liner": "Choosing coordinates that naturally respect constraints",
+      "category": "Lagrangian mechanics",
+      "outcomes": ["Select generalized coordinates for a given constrained system", "Express kinetic and potential energy in generalized coordinates", "Relate generalized coordinates to Cartesian positions via transformation equations"],
+      "status": "not_started"
+    },
+    {
+      "id": "virtual-work",
+      "title": "Virtual Work and Virtual Displacements",
+      "one_liner": "Work done by forces through infinitesimal displacements consistent with constraints",
+      "category": "Lagrangian mechanics",
+      "outcomes": ["Define virtual displacement as an infinitesimal displacement consistent with constraints at fixed time", "State the principle of virtual work for static equilibrium", "Apply virtual work to derive equilibrium conditions without solving for constraint forces"],
+      "status": "not_started"
+    },
+    {
+      "id": "dalembert-principle",
+      "title": "D'Alembert's Principle",
+      "one_liner": "Extending virtual work to dynamics by treating inertial forces as applied forces",
+      "category": "Lagrangian mechanics",
+      "outcomes": ["State D'Alembert's principle: (F - ma) · δr = 0", "Derive equations of motion without constraint forces", "Show that D'Alembert's principle leads to the Euler-Lagrange equations"],
+      "status": "not_started"
+    },
+    {
+      "id": "principle-of-least-action",
+      "title": "Principle of Least Action",
+      "one_liner": "The physical trajectory extremises the action integral S = ∫L dt",
+      "category": "Lagrangian mechanics",
+      "outcomes": ["Define the action functional and state Hamilton's principle", "Show that δS = 0 yields the Euler-Lagrange equations", "Understand the relationship between least action and energy conservation"],
+      "status": "not_started"
+    },
+    {
+      "id": "euler-lagrange-equation",
+      "title": "Euler-Lagrange Equation",
+      "one_liner": "The fundamental equation of Lagrangian mechanics: d/dt(∂L/∂q̇) - ∂L/∂q = 0",
+      "category": "Lagrangian mechanics",
+      "outcomes": ["Derive the Euler-Lagrange equation from the action principle", "Apply it to obtain equations of motion for mechanical systems", "Identify the connection to Newton's second law for simple cases"],
+      "status": "not_started"
+    },
+    {
+      "id": "lagrangian-mechanics",
+      "title": "Lagrangian Mechanics",
+      "one_liner": "Complete reformulation of classical mechanics using L = T - V and the Euler-Lagrange equations",
+      "category": "Lagrangian mechanics",
+      "outcomes": ["Construct the Lagrangian for multi-degree-of-freedom systems", "Derive and solve the equations of motion for constrained systems", "Compare Lagrangian and Newtonian approaches for the same problem"],
+      "status": "not_started"
+    },
+    {
+      "id": "symmetries-and-noether",
+      "title": "Symmetries and Noether's Theorem",
+      "one_liner": "Every continuous symmetry of the Lagrangian yields a conserved quantity",
+      "category": "Lagrangian mechanics",
+      "outcomes": ["State Noether's theorem and identify the conserved quantity for a given symmetry", "Derive conservation of momentum from translational symmetry", "Derive conservation of angular momentum from rotational symmetry"],
+      "status": "not_started"
+    },
+    {
+      "id": "cyclic-coordinates",
+      "title": "Cyclic Coordinates and Conserved Momenta",
+      "one_liner": "Coordinates absent from the Lagrangian whose conjugate momenta are conserved",
+      "category": "Lagrangian mechanics",
+      "outcomes": ["Identify cyclic coordinates by inspection of the Lagrangian", "Derive the conserved conjugate momentum for each cyclic coordinate", "Use cyclic coordinates to reduce the order of the equations of motion"],
+      "status": "not_started"
+    },
+    {
+      "id": "lagrange-multipliers",
+      "title": "Lagrange Multipliers for Constraints",
+      "one_liner": "Incorporating non-eliminable constraints into the Lagrangian formalism",
+      "category": "Lagrangian mechanics",
+      "outcomes": ["Augment the Lagrangian with constraint terms and multipliers", "Solve the augmented Euler-Lagrange equations for motion and constraint forces", "Identify when multipliers are preferable to eliminating coordinates"],
+      "status": "not_started"
+    },
+    {
+      "id": "small-oscillations-lagrangian",
+      "title": "Small Oscillations (Lagrangian Treatment)",
+      "one_liner": "Systematic Lagrangian analysis of small oscillations about equilibrium for multi-DOF systems",
+      "category": "Lagrangian mechanics",
+      "outcomes": ["Taylor-expand the Lagrangian to quadratic order about equilibrium", "Set up the T and V matrices and solve the generalised eigenvalue problem", "Find normal-mode frequencies and mode shapes for multi-DOF systems"],
+      "status": "not_started"
+    },
+    {
+      "id": "hamiltonian-function",
+      "title": "The Hamiltonian",
+      "one_liner": "Legendre transform of the Lagrangian: H(q, p, t) = Σpᵢq̇ᵢ - L",
+      "category": "Hamiltonian mechanics",
+      "outcomes": ["Construct the Hamiltonian from the Lagrangian via Legendre transform", "Identify when H equals total energy and when it does not", "Express the Hamiltonian for standard mechanical systems"],
+      "status": "not_started"
+    },
+    {
+      "id": "hamilton-equations",
+      "title": "Hamilton's Equations of Motion",
+      "one_liner": "First-order equations q̇ = ∂H/∂p, ṗ = -∂H/∂q replacing the second-order Euler-Lagrange equation",
+      "category": "Hamiltonian mechanics",
+      "outcomes": ["Derive Hamilton's equations from the Hamiltonian", "Solve Hamilton's equations for simple systems", "Compare the structure of Hamiltonian and Lagrangian equations"],
+      "status": "not_started"
+    },
+    {
+      "id": "phase-space",
+      "title": "Phase Space",
+      "one_liner": "The 2n-dimensional space of generalised coordinates and momenta",
+      "category": "Hamiltonian mechanics",
+      "outcomes": ["Plot phase portraits for one-dimensional systems", "State and apply Liouville's theorem on phase-space volume conservation", "Identify fixed points and classify their stability from the phase portrait"],
+      "status": "not_started"
+    },
+    {
+      "id": "poisson-brackets",
+      "title": "Poisson Brackets",
+      "one_liner": "Algebraic structure encoding the time evolution and symmetries of Hamiltonian systems",
+      "category": "Hamiltonian mechanics",
+      "outcomes": ["Define the Poisson bracket {f, g}", "Express time evolution as df/dt = {f, H} + ∂f/∂t", "Verify the fundamental Poisson brackets {qᵢ, pⱼ} = δᵢⱼ"],
+      "status": "not_started"
+    }
+  ],
+  "edges": [
+    { "parent_id": "coordinate-systems", "child_id": "vector-algebra", "justification": "Curvilinear basis vectors and coordinate transformations require vector operations" },
+    { "parent_id": "differential-equations", "child_id": "basic-calculus", "justification": "ODEs are equations involving derivatives; solving them requires integration" },
+    { "parent_id": "partial-derivatives", "child_id": "basic-calculus", "justification": "Partial differentiation extends single-variable calculus to multiple variables" },
+    { "parent_id": "multiple-integrals", "child_id": "basic-calculus", "justification": "Multiple integrals extend single-variable integration to higher dimensions" },
+    { "parent_id": "taylor-series", "child_id": "basic-calculus", "justification": "Taylor coefficients are computed from successive derivatives" },
+    { "parent_id": "fourier-series", "child_id": "basic-calculus", "justification": "Computing Fourier coefficients requires integration" },
+    { "parent_id": "fourier-series", "child_id": "taylor-series", "justification": "Understanding series representations of functions provides the conceptual basis for Fourier decomposition" },
+    { "parent_id": "calculus-of-variations", "child_id": "partial-derivatives", "justification": "Deriving the Euler-Lagrange equation from a functional requires partial differentiation of the integrand" },
+    { "parent_id": "calculus-of-variations", "child_id": "multiple-integrals", "justification": "Functionals are defined as integrals; their evaluation and manipulation require integration techniques" },
+    { "parent_id": "legendre-transform", "child_id": "partial-derivatives", "justification": "The Legendre transform is defined through partial derivatives of the original function" },
+    { "parent_id": "legendre-transform", "child_id": "basic-calculus", "justification": "Understanding convexity and the geometric interpretation requires single-variable calculus" },
+    { "parent_id": "newtons-laws", "child_id": "vector-algebra", "justification": "Forces and accelerations are vectors; Newton's second law is a vector equation" },
+    { "parent_id": "newtons-laws", "child_id": "basic-calculus", "justification": "Acceleration is the second derivative of position; applying Newton's laws requires differentiation and integration" },
+    { "parent_id": "momentum-and-impulse", "child_id": "newtons-laws", "justification": "Momentum conservation follows from Newton's third law; impulse is the integral of Newton's second law" },
+    { "parent_id": "friction-and-contact", "child_id": "newtons-laws", "justification": "Solving friction problems requires applying Newton's second law with constraint and friction forces" },
+    { "parent_id": "projectile-motion", "child_id": "newtons-laws", "justification": "Projectile trajectories are derived by applying Newton's second law under uniform gravity" },
+    { "parent_id": "projectile-motion", "child_id": "basic-calculus", "justification": "Integrating constant acceleration to obtain velocity and position requires basic calculus" },
+    { "parent_id": "circular-motion", "child_id": "newtons-laws", "justification": "Centripetal acceleration requires a net inward force governed by Newton's second law" },
+    { "parent_id": "circular-motion", "child_id": "vector-algebra", "justification": "Resolving forces into radial and tangential components requires vector decomposition" },
+    { "parent_id": "work-energy-theorem", "child_id": "newtons-laws", "justification": "The work-energy theorem is derived by integrating Newton's second law along the path" },
+    { "parent_id": "work-energy-theorem", "child_id": "basic-calculus", "justification": "Work is defined as an integral of force over displacement" },
+    { "parent_id": "potential-energy", "child_id": "work-energy-theorem", "justification": "Potential energy is defined as negative work done by conservative forces, which requires the work concept" },
+    { "parent_id": "conservative-forces", "child_id": "potential-energy", "justification": "Conservative forces are defined as those derivable from a potential energy function" },
+    { "parent_id": "conservative-forces", "child_id": "vector-algebra", "justification": "The curl condition for conservative forces requires vector calculus operations" },
+    { "parent_id": "energy-conservation", "child_id": "potential-energy", "justification": "Conservation of energy equates the sum of kinetic and potential energy to a constant" },
+    { "parent_id": "energy-conservation", "child_id": "work-energy-theorem", "justification": "Energy conservation is derived by applying the work-energy theorem to conservative forces" },
+    { "parent_id": "center-of-mass", "child_id": "newtons-laws", "justification": "The centre-of-mass equation of motion follows from summing Newton's second law over all particles" },
+    { "parent_id": "center-of-mass", "child_id": "multiple-integrals", "justification": "Computing the centre of mass of continuous bodies requires integration over the mass distribution" },
+    { "parent_id": "reference-frames", "child_id": "newtons-laws", "justification": "The concept of inertial frames is defined by the validity of Newton's laws" },
+    { "parent_id": "non-inertial-frames", "child_id": "reference-frames", "justification": "Non-inertial frames are defined in contrast to inertial frames" },
+    { "parent_id": "rotating-reference-frames", "child_id": "non-inertial-frames", "justification": "Rotating frames are a specific class of non-inertial frames with angular velocity" },
+    { "parent_id": "rotating-reference-frames", "child_id": "circular-motion", "justification": "The centrifugal and Coriolis terms arise from the kinematics of rotation" },
+    { "parent_id": "rotating-reference-frames", "child_id": "vector-algebra", "justification": "The five-term acceleration formula requires cross products and vector decomposition" },
+    { "parent_id": "coriolis-force", "child_id": "rotating-reference-frames", "justification": "The Coriolis force is derived within the rotating-frame formalism" },
+    { "parent_id": "simple-harmonic-motion", "child_id": "newtons-laws", "justification": "The SHM equation is Newton's second law applied to a linear restoring force" },
+    { "parent_id": "simple-harmonic-motion", "child_id": "differential-equations", "justification": "The SHM equation ẍ + ω²x = 0 is a second-order ODE requiring standard solution methods" },
+    { "parent_id": "simple-harmonic-motion", "child_id": "energy-conservation", "justification": "SHM involves continuous exchange between kinetic and potential energy at constant total energy" },
+    { "parent_id": "damped-oscillations", "child_id": "simple-harmonic-motion", "justification": "Damped oscillation extends SHM by adding a dissipative term" },
+    { "parent_id": "damped-oscillations", "child_id": "differential-equations", "justification": "The damped oscillator equation is a second-order ODE with characteristic equation analysis" },
+    { "parent_id": "driven-oscillations", "child_id": "damped-oscillations", "justification": "Driven oscillations build on the damped oscillator by adding a periodic driving force" },
+    { "parent_id": "driven-oscillations", "child_id": "fourier-series", "justification": "A general periodic driving force is decomposed into Fourier harmonics, each analysed independently" },
+    { "parent_id": "coupled-oscillations", "child_id": "simple-harmonic-motion", "justification": "Coupled oscillations generalise SHM to multiple interacting oscillators" },
+    { "parent_id": "coupled-oscillations", "child_id": "linear-algebra-basics", "justification": "The coupled equations of motion are written as a matrix eigenvalue problem" },
+    { "parent_id": "normal-modes", "child_id": "coupled-oscillations", "justification": "Normal modes are the eigenvectors of the coupled-oscillation matrix" },
+    { "parent_id": "normal-modes", "child_id": "linear-algebra-basics", "justification": "Finding normal modes requires diagonalising the stiffness matrix" },
+    { "parent_id": "stability-of-equilibria", "child_id": "potential-energy", "justification": "Stability is classified by the curvature of the potential energy at equilibrium" },
+    { "parent_id": "stability-of-equilibria", "child_id": "taylor-series", "justification": "Linearisation near equilibrium uses a Taylor expansion of the potential to quadratic order" },
+    { "parent_id": "angular-velocity", "child_id": "circular-motion", "justification": "Angular velocity generalises the kinematics of circular motion to arbitrary rotation" },
+    { "parent_id": "angular-velocity", "child_id": "vector-algebra", "justification": "Angular velocity is a pseudo-vector requiring cross-product formalism (v = ω × r)" },
+    { "parent_id": "torque", "child_id": "newtons-laws", "justification": "Torque is derived from Newton's second law applied to rotational motion" },
+    { "parent_id": "torque", "child_id": "angular-velocity", "justification": "The rotational equation τ = Iα requires the concept of angular acceleration" },
+    { "parent_id": "moment-of-inertia", "child_id": "multiple-integrals", "justification": "Computing moments of inertia for continuous bodies requires integration over the mass distribution" },
+    { "parent_id": "moment-of-inertia", "child_id": "angular-velocity", "justification": "Moment of inertia relates angular velocity to rotational kinetic energy and angular momentum" },
+    { "parent_id": "parallel-axis-theorem", "child_id": "moment-of-inertia", "justification": "The parallel-axis theorem transforms a known centre-of-mass moment to a displaced axis" },
+    { "parent_id": "angular-momentum", "child_id": "torque", "justification": "The time derivative of angular momentum equals the net torque" },
+    { "parent_id": "angular-momentum", "child_id": "momentum-and-impulse", "justification": "Angular momentum L = r × p extends the concept of linear momentum to rotation" },
+    { "parent_id": "rigid-body-rotation", "child_id": "moment-of-inertia", "justification": "Rigid-body dynamics requires computing moments of inertia about various axes" },
+    { "parent_id": "rigid-body-rotation", "child_id": "angular-momentum", "justification": "Rolling and spinning problems require conservation and computation of angular momentum" },
+    { "parent_id": "rigid-body-rotation", "child_id": "torque", "justification": "Rigid-body equations of motion equate net torque to the rate of change of angular momentum" },
+    { "parent_id": "precession-and-gyroscopes", "child_id": "angular-momentum", "justification": "Precession arises from torque changing the direction of the angular momentum vector" },
+    { "parent_id": "precession-and-gyroscopes", "child_id": "torque", "justification": "Gravitational torque on a spinning top drives its precession" },
+    { "parent_id": "precession-and-gyroscopes", "child_id": "rigid-body-rotation", "justification": "Gyroscopic motion involves a rapidly spinning rigid body" },
+    { "parent_id": "gravitational-force", "child_id": "newtons-laws", "justification": "Newton's law of gravitation is stated alongside and applied through Newton's laws of motion" },
+    { "parent_id": "gravitational-force", "child_id": "coordinate-systems", "justification": "Gravitational problems with spherical symmetry require spherical coordinates and the shell theorem" },
+    { "parent_id": "reduced-mass", "child_id": "center-of-mass", "justification": "The reduced-mass transformation uses centre-of-mass and relative coordinates" },
+    { "parent_id": "reduced-mass", "child_id": "newtons-laws", "justification": "Deriving the reduced-mass equation of motion applies Newton's second law to each body" },
+    { "parent_id": "two-body-problem", "child_id": "reduced-mass", "justification": "The two-body problem is solved by reducing to an equivalent one-body problem via reduced mass" },
+    { "parent_id": "effective-potential", "child_id": "energy-conservation", "justification": "The effective potential is derived by writing the total energy in radial form using conservation of energy" },
+    { "parent_id": "effective-potential", "child_id": "angular-momentum", "justification": "The centrifugal barrier L²/2μr² in V_eff arises from conservation of angular momentum" },
+    { "parent_id": "effective-potential", "child_id": "coordinate-systems", "justification": "Decomposing motion into radial and angular parts requires polar or spherical coordinates" },
+    { "parent_id": "orbit-equation", "child_id": "effective-potential", "justification": "The orbit equation is derived from the effective-potential energy equation" },
+    { "parent_id": "orbit-equation", "child_id": "differential-equations", "justification": "Solving for r(θ) requires solving a second-order ODE (the Binet equation)" },
+    { "parent_id": "kepler-orbits", "child_id": "orbit-equation", "justification": "Kepler's laws follow from the orbit equation with an inverse-square force" },
+    { "parent_id": "kepler-orbits", "child_id": "gravitational-force", "justification": "Kepler orbits are the specific case of the orbit equation under Newtonian gravity" },
+    { "parent_id": "scattering-theory", "child_id": "effective-potential", "justification": "Scattering trajectories are analysed using the effective potential for unbound orbits" },
+    { "parent_id": "scattering-theory", "child_id": "coordinate-systems", "justification": "Cross-section calculations require solid angle integration in spherical coordinates" },
+    { "parent_id": "constraints-and-degrees-of-freedom", "child_id": "newtons-laws", "justification": "Constraint forces supplement Newton's laws; counting DOF determines the number of independent equations" },
+    { "parent_id": "constraints-and-degrees-of-freedom", "child_id": "coordinate-systems", "justification": "Constraints are expressed as equations relating coordinate variables" },
+    { "parent_id": "generalized-coordinates", "child_id": "constraints-and-degrees-of-freedom", "justification": "Generalized coordinates are chosen to automatically satisfy holonomic constraints" },
+    { "parent_id": "generalized-coordinates", "child_id": "coordinate-systems", "justification": "Constructing generalized coordinates requires facility with coordinate transformations" },
+    { "parent_id": "virtual-work", "child_id": "newtons-laws", "justification": "Virtual work extends the concept of mechanical work from Newton's framework to constrained systems" },
+    { "parent_id": "virtual-work", "child_id": "constraints-and-degrees-of-freedom", "justification": "Virtual displacements must be consistent with constraints at fixed time" },
+    { "parent_id": "dalembert-principle", "child_id": "virtual-work", "justification": "D'Alembert's principle generalises virtual work from statics to dynamics" },
+    { "parent_id": "dalembert-principle", "child_id": "newtons-laws", "justification": "D'Alembert's principle treats ma as a fictitious force applied within Newton's framework" },
+    { "parent_id": "principle-of-least-action", "child_id": "calculus-of-variations", "justification": "Hamilton's principle extremises the action functional, which is a variational problem" },
+    { "parent_id": "principle-of-least-action", "child_id": "energy-conservation", "justification": "The Lagrangian L = T - V encodes the energy structure; conservation of energy follows from time-translation symmetry of the action" },
+    { "parent_id": "euler-lagrange-equation", "child_id": "calculus-of-variations", "justification": "The Euler-Lagrange equation is the variational equation for the action functional" },
+    { "parent_id": "euler-lagrange-equation", "child_id": "partial-derivatives", "justification": "The equation involves partial derivatives ∂L/∂q and ∂L/∂q̇ of the Lagrangian" },
+    { "parent_id": "lagrangian-mechanics", "child_id": "euler-lagrange-equation", "justification": "The Euler-Lagrange equation is the central computational tool of the Lagrangian formulation" },
+    { "parent_id": "lagrangian-mechanics", "child_id": "generalized-coordinates", "justification": "The Lagrangian is expressed in generalized coordinates; cannot formulate problems without them" },
+    { "parent_id": "lagrangian-mechanics", "child_id": "principle-of-least-action", "justification": "The variational principle provides the theoretical foundation for the entire formulation" },
+    { "parent_id": "lagrangian-mechanics", "child_id": "dalembert-principle", "justification": "D'Alembert's principle provides the physical bridge from Newtonian to Lagrangian mechanics" },
+    { "parent_id": "lagrangian-mechanics", "child_id": "energy-conservation", "justification": "The Lagrangian L = T - V is defined in terms of kinetic and potential energy" },
+    { "parent_id": "symmetries-and-noether", "child_id": "lagrangian-mechanics", "justification": "Noether's theorem applies to symmetries of the Lagrangian" },
+    { "parent_id": "symmetries-and-noether", "child_id": "calculus-of-variations", "justification": "The proof of Noether's theorem uses variational calculus" },
+    { "parent_id": "cyclic-coordinates", "child_id": "lagrangian-mechanics", "justification": "Cyclic coordinates are identified from the structure of the Lagrangian" },
+    { "parent_id": "cyclic-coordinates", "child_id": "partial-derivatives", "justification": "A coordinate is cyclic when ∂L/∂q = 0, requiring partial differentiation" },
+    { "parent_id": "lagrange-multipliers", "child_id": "lagrangian-mechanics", "justification": "Lagrange multipliers augment the standard Lagrangian formalism for non-eliminable constraints" },
+    { "parent_id": "lagrange-multipliers", "child_id": "constraints-and-degrees-of-freedom", "justification": "Multipliers handle constraints that cannot be eliminated by coordinate choice" },
+    { "parent_id": "small-oscillations-lagrangian", "child_id": "lagrangian-mechanics", "justification": "The Lagrangian treatment of small oscillations constructs T and V matrices from the Lagrangian" },
+    { "parent_id": "small-oscillations-lagrangian", "child_id": "stability-of-equilibria", "justification": "Small oscillations are defined about a stable equilibrium point" },
+    { "parent_id": "small-oscillations-lagrangian", "child_id": "taylor-series", "justification": "The T and V matrices come from Taylor-expanding the Lagrangian to quadratic order" },
+    { "parent_id": "small-oscillations-lagrangian", "child_id": "linear-algebra-basics", "justification": "Normal-mode frequencies are eigenvalues of the generalised eigenvalue problem Vx = ω²Tx" },
+    { "parent_id": "small-oscillations-lagrangian", "child_id": "normal-modes", "justification": "The Lagrangian treatment provides the systematic framework for finding normal modes of multi-DOF systems" },
+    { "parent_id": "hamiltonian-function", "child_id": "lagrangian-mechanics", "justification": "The Hamiltonian is derived from the Lagrangian via Legendre transform" },
+    { "parent_id": "hamiltonian-function", "child_id": "legendre-transform", "justification": "The Hamiltonian H = Σpᵢq̇ᵢ - L is the Legendre transform of L with respect to q̇" },
+    { "parent_id": "hamilton-equations", "child_id": "hamiltonian-function", "justification": "Hamilton's equations are derived from the Hamiltonian" },
+    { "parent_id": "hamilton-equations", "child_id": "partial-derivatives", "justification": "Hamilton's equations q̇ = ∂H/∂p, ṗ = -∂H/∂q are partial derivatives of H" },
+    { "parent_id": "phase-space", "child_id": "hamilton-equations", "justification": "Phase-space trajectories are the solutions of Hamilton's equations" },
+    { "parent_id": "phase-space", "child_id": "coordinate-systems", "justification": "Phase space is a 2n-dimensional coordinate space requiring facility with higher-dimensional coordinate concepts" },
+    { "parent_id": "poisson-brackets", "child_id": "hamilton-equations", "justification": "Poisson brackets encode the algebraic structure of Hamilton's equations" },
+    { "parent_id": "poisson-brackets", "child_id": "partial-derivatives", "justification": "The Poisson bracket {f,g} is defined as a sum of partial derivatives" }
+  ]
+}

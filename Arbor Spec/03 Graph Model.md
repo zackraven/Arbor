@@ -15,22 +15,30 @@ A tree is a **DAG** ([[01 Concepts & Glossary]]): nodes + directed edges parent 
 ## Node record (graph-level; pack content lives separately, see [[04 Node Pack Schema]] and [[09 Storage]])
 
 ```
-id            stable slug (also the pack folder name)
+id            stable slug (also the pack folder name); TEXT primary key
 title         short concept name ("Basic Partial Differentiation")
 one_liner     one-sentence definition (used by the concept registry)
-category      which top-bubble primary category it descends from (one or more)
-outcomes      3–7 learning outcome strings
-status        pack_pending | pack_ready | in_progress | completed
-edges         list of child ids, each with its justification string
-provenance    built | inserted_by_repair (+ date, adjudicator rationale)
+category      which top-bubble primary category it descends from (single TEXT)
+outcomes_json 3–7 learning outcome strings (JSON array in TEXT column)
+status        not_started | in_progress | completed  (C1 — never locked/unlocked/pack_*)
+pack_path     vault-relative path to pack; NULL until authored
+provenance_json  {} default; repair insertions carry date + rationale
 ```
+
+Edges are stored in the `edge` table with `tree_id`, `parent_id`, `child_id`, `justification`. Provenance on edges was dropped during C1 hardening; graph_log records the actor (`build_pipeline|repair|user`) for each mutation instead.
 
 ## Node states & unlock rule
 
+The stored `node.status` column has three values (C1 contract):
+
+- **`not_started`** — no teaching begun (default).
+- **`in_progress`** — teaching started, diagnostic not yet passed.
+- **`completed`** — diagnostic passed; compact summary written to the trunk; FSRS cards live.
+
+Locked/unlocked is **computed live**, never stored:
+
 - **Locked** — some child not completed.
 - **Unlocked** — all children completed (for baseline-adjacent leaves: unlocked from the start). Available for teaching *or* [[01 Concepts & Glossary|test-out]]. No skipping past locked nodes, ever.
-- **In progress** — teaching started, diagnostic not yet passed.
-- **Completed** — diagnostic passed; compact summary written to the trunk; FSRS cards live.
 
 **Invariant: unlock status is computed live from the current graph, never stored as a static list.** Rationale: the graph can change under a learner (repair insertions/removals — [[06 Repair System]]). A node inserted below something already "unlocked" simply re-locks it by computation; completed nodes are never revoked.
 

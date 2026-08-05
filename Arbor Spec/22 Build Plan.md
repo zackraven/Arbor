@@ -11,11 +11,12 @@ Repo scaffold (Tauri + React + TS building and launching), CI running tests, `.c
 **Runnable:** empty app opens instantly; `pnpm test` green.
 
 ## Phase 1 — Storage & Contracts *(T-002…)*
-C1 schema + migrations; C2 pack schema + validator; vault module (C6) reading/writing trunk + tree folders; fixture packs.
-**Runnable:** CLI-level round-trip — fixture pack validates, loads, DB migrates from zero.
+C1 schema + migrations; C2 pack schema + validator; fixture packs. *(C6 vault module deferred — not needed until build pipeline writes packs in Phase 4.)*
+**Runnable criterion:** fixture pack validates and loads; DB migrates from zero.
+**Gate (2026-08-05): passed with deferral.** Both subsystems independently proven (77 TS tests + 9 Rust tests), but no single test crosses both (loads a validated pack into a migrated DB). The full round-trip is structurally deferred to Phase 2's `seed_graph`, the first consumer that touches both subsystems. C6 vault deferral means no pack→DB write path exists yet.
 
-## Phase 2 — Graph core
-Graph model in DB; live unlock computation; graph_log; fixture tree (~60 nodes, hand-made realistic shape).
+## Phase 2 — Graph core *(T-006…)*
+Graph model in DB via C3 Tauri commands; live unlock computation; graph_log; two fixture trees (12-node hand-designed for unlock tests, ~60-node generated for layout/vibe).
 **Runnable:** unlock computation demonstrably correct on fixture tree, incl. mutation-under-learner cases.
 
 ## Phase 3 — Graph UI on fake data

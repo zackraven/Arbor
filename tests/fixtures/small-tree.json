@@ -1,0 +1,153 @@
+{
+  "id": "classical-mechanics",
+  "title": "Classical Mechanics",
+  "scope": {
+    "top_bubble": "Classical mechanics fundamentals through Lagrangian formulation",
+    "categories": ["Newtonian mechanics", "Lagrangian mechanics"]
+  },
+  "nodes": [
+    {
+      "id": "lagrangian-mechanics",
+      "title": "Lagrangian Mechanics",
+      "one_liner": "Reformulation of classical mechanics using the principle of least action",
+      "category": "Lagrangian mechanics",
+      "outcomes": ["Derive equations of motion from a Lagrangian", "Apply the Euler-Lagrange equation to simple systems", "Identify when Lagrangian methods simplify a problem"],
+      "status": "not_started"
+    },
+    {
+      "id": "euler-lagrange",
+      "title": "Euler-Lagrange Equation",
+      "one_liner": "The fundamental equation of the calculus of variations applied to mechanics",
+      "category": "Lagrangian mechanics",
+      "outcomes": ["Derive the Euler-Lagrange equation from Hamilton's principle", "Apply it to find equations of motion", "Handle constraints via Lagrange multipliers"],
+      "status": "not_started"
+    },
+    {
+      "id": "generalized-coords",
+      "title": "Generalized Coordinates",
+      "one_liner": "Choosing coordinates that respect the constraints of a mechanical system",
+      "category": "Lagrangian mechanics",
+      "outcomes": ["Identify degrees of freedom", "Choose appropriate generalized coordinates", "Express kinetic and potential energy in generalized coordinates"],
+      "status": "not_started"
+    },
+    {
+      "id": "calculus-of-variations",
+      "title": "Calculus of Variations",
+      "one_liner": "Finding functions that extremise functionals",
+      "category": "Lagrangian mechanics",
+      "outcomes": ["Define a functional", "Derive the Euler-Lagrange equation for a general functional", "Solve simple variational problems"],
+      "status": "not_started"
+    },
+    {
+      "id": "newtons-laws",
+      "title": "Newton's Laws of Motion",
+      "one_liner": "The three foundational laws governing force and motion",
+      "category": "Newtonian mechanics",
+      "outcomes": ["State and apply Newton's three laws", "Solve force-balance problems", "Identify action-reaction pairs"],
+      "status": "completed"
+    },
+    {
+      "id": "energy-conservation",
+      "title": "Energy Conservation",
+      "one_liner": "Work-energy theorem and conservation of mechanical energy",
+      "category": "Newtonian mechanics",
+      "outcomes": ["Derive the work-energy theorem", "Apply conservation of energy to mechanical systems", "Identify conservative forces"],
+      "status": "completed"
+    },
+    {
+      "id": "partial-derivatives",
+      "title": "Partial Derivatives",
+      "one_liner": "Differentiation of functions of several variables with respect to one variable",
+      "category": "Lagrangian mechanics",
+      "outcomes": ["Compute partial derivatives", "Apply the chain rule for multivariable functions", "Interpret partial derivatives geometrically"],
+      "status": "completed"
+    },
+    {
+      "id": "integration-techniques",
+      "title": "Integration Techniques",
+      "one_liner": "Methods for evaluating integrals beyond basic antiderivatives",
+      "category": "Newtonian mechanics",
+      "outcomes": ["Apply integration by parts", "Use substitution methods", "Evaluate definite integrals"],
+      "status": "completed"
+    },
+    {
+      "id": "vectors-and-coordinates",
+      "title": "Vectors and Coordinate Systems",
+      "one_liner": "Vector algebra and non-Cartesian coordinate systems",
+      "category": "Newtonian mechanics",
+      "outcomes": ["Perform vector operations", "Convert between coordinate systems", "Express physical quantities in polar/spherical coordinates"],
+      "status": "completed"
+    },
+    {
+      "id": "work-and-energy",
+      "title": "Work and Kinetic Energy",
+      "one_liner": "The relationship between force, displacement, and energy transfer",
+      "category": "Newtonian mechanics",
+      "outcomes": ["Calculate work done by a force", "Apply the work-energy theorem", "Distinguish conservative and non-conservative work"],
+      "status": "in_progress"
+    },
+    {
+      "id": "constraints",
+      "title": "Constraints and Degrees of Freedom",
+      "one_liner": "How constraints reduce the configuration space of a mechanical system",
+      "category": "Lagrangian mechanics",
+      "outcomes": ["Classify holonomic and non-holonomic constraints", "Count degrees of freedom", "Express constraints mathematically"],
+      "status": "not_started"
+    },
+    {
+      "id": "dalembert-principle",
+      "title": "D'Alembert's Principle",
+      "one_liner": "Virtual work principle bridging Newton's laws and analytical mechanics",
+      "category": "Lagrangian mechanics",
+      "outcomes": ["State D'Alembert's principle", "Apply virtual displacements", "Derive equations of motion using virtual work"],
+      "status": "not_started"
+    }
+  ],
+  "edges": [
+    { "parent_id": "lagrangian-mechanics", "child_id": "euler-lagrange", "justification": "Euler-Lagrange equation is the core computational tool of Lagrangian mechanics" },
+    { "parent_id": "lagrangian-mechanics", "child_id": "generalized-coords", "justification": "Lagrangian is expressed in generalized coordinates; cannot formulate without them" },
+    { "parent_id": "lagrangian-mechanics", "child_id": "dalembert-principle", "justification": "D'Alembert's principle motivates the Lagrangian formulation from Newton's laws" },
+    { "parent_id": "euler-lagrange", "child_id": "calculus-of-variations", "justification": "Euler-Lagrange equation IS the calculus of variations applied to the action functional" },
+    { "parent_id": "euler-lagrange", "child_id": "partial-derivatives", "justification": "The equation involves partial derivatives of the Lagrangian with respect to q and q-dot" },
+    { "parent_id": "generalized-coords", "child_id": "constraints", "justification": "Generalized coordinates are chosen to automatically satisfy constraints" },
+    { "parent_id": "generalized-coords", "child_id": "vectors-and-coordinates", "justification": "Coordinate transformations are the mechanical skill underlying generalized coordinates" },
+    { "parent_id": "calculus-of-variations", "child_id": "integration-techniques", "justification": "Functionals are defined as integrals; evaluating them requires integration techniques" },
+    { "parent_id": "calculus-of-variations", "child_id": "partial-derivatives", "justification": "Deriving the Euler-Lagrange equation from a functional requires partial differentiation" },
+    { "parent_id": "dalembert-principle", "child_id": "newtons-laws", "justification": "D'Alembert's principle reformulates Newton's second law using virtual displacements" },
+    { "parent_id": "dalembert-principle", "child_id": "constraints", "justification": "Virtual work is defined relative to constraint surfaces" },
+    { "parent_id": "dalembert-principle", "child_id": "work-and-energy", "justification": "Virtual work is the conceptual bridge; requires understanding work as force times displacement" },
+    { "parent_id": "constraints", "child_id": "vectors-and-coordinates", "justification": "Constraints are expressed as equations relating coordinate variables" },
+    { "parent_id": "energy-conservation", "child_id": "work-and-energy", "justification": "Energy conservation is derived from the work-energy theorem" }
+  ],
+  "_test_notes": {
+    "description": "12-node fixture for unlock-computation unit tests. Statuses pre-set to exercise all four UnlockStatus values. The unlock rule: completed/in_progress pass through from node.status; not_started nodes are 'unlocked' iff ALL children have status=completed, else 'locked'. Leaf nodes (no children) with status=not_started are 'unlocked'.",
+    "expected_unlock_status": {
+      "newtons-laws": "completed",
+      "energy-conservation": "completed",
+      "partial-derivatives": "completed",
+      "integration-techniques": "completed",
+      "vectors-and-coordinates": "completed",
+      "work-and-energy": "in_progress",
+      "constraints": "unlocked",
+      "calculus-of-variations": "unlocked",
+      "dalembert-principle": "locked",
+      "euler-lagrange": "locked",
+      "generalized-coords": "locked",
+      "lagrangian-mechanics": "locked"
+    },
+    "reasoning": {
+      "newtons-laws": "status=completed → passthrough completed. (leaf node)",
+      "energy-conservation": "status=completed → passthrough completed. Children's status is irrelevant for completed nodes.",
+      "partial-derivatives": "status=completed → passthrough completed. (leaf node)",
+      "integration-techniques": "status=completed → passthrough completed. (leaf node)",
+      "vectors-and-coordinates": "status=completed → passthrough completed. (leaf node)",
+      "work-and-energy": "status=in_progress → passthrough in_progress. (leaf node)",
+      "constraints": "status=not_started. Children: [vectors-and-coordinates(completed)]. All children completed → unlocked.",
+      "calculus-of-variations": "status=not_started. Children: [integration-techniques(completed), partial-derivatives(completed)]. All children completed → unlocked.",
+      "dalembert-principle": "status=not_started. Children: [newtons-laws(completed), constraints(not_started), work-and-energy(in_progress)]. constraints is not completed → locked.",
+      "euler-lagrange": "status=not_started. Children: [calculus-of-variations(not_started), partial-derivatives(completed)]. calculus-of-variations is not completed → locked.",
+      "generalized-coords": "status=not_started. Children: [constraints(not_started), vectors-and-coordinates(completed)]. constraints is not completed → locked.",
+      "lagrangian-mechanics": "status=not_started. Children: [euler-lagrange(not_started), generalized-coords(not_started), dalembert-principle(not_started)]. None completed → locked."
+    }
+  }
+}

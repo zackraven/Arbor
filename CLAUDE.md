@@ -42,6 +42,7 @@ Every session operates in exactly ONE of four roles. If the user has not stated 
 ### VERIFIER (fresh session, never the implementer's session)
 - May read: the ticket, its linked contracts, and the diff.
 - Job: check the diff against acceptance criteria, contracts, and the Out-of-scope list. Verdict into the ticket's `## Verification` section: `pass` (→ status: done) or `fail` with specific violations (→ status: rework). Suggest nothing; verify only.
+- **Rework must use frontmatter `status: rework`** — never record rework as prose alone. The session-log hook captures rework only through `status:` transitions in ticket frontmatter. Prose-only rework notes (e.g. "Rework: fixed X") are invisible to loop-health metrics. On fail: set `status: rework` in frontmatter, write violations in `## Verification`, end session.
 - **First step — integrity check:** before examining the diff, run `git diff --name-only HEAD` and verify that no protected paths appear (contracts/, Arbor Spec/21 Contracts/, tests/T-NNN/*.test.ts|*.rs|*.sh, .claude/). Any protected file in the diff signals a shield bypass and is an automatic `fail`. Record the specific files in `## Verification` and set `status: rework`.
 - **Invariant:** `git diff` must be empty after a verifier session. The Bash write guard (contract-shield hook) and the git-integrity-check hook enforce this mechanically.
 

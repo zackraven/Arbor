@@ -103,6 +103,8 @@ New/modified hook detected
 │   └── NO → Run the drill first (note 24 protocol)
 │       → Serial probes only (one tool call per message)
 │       → Probes must be operations that would otherwise succeed
+│       → Self-protection probes go last (one destructive probe
+│         poisons every subsequent result in the run)
 │       → All protected path classes must be probed
 │       → Both write vectors (Edit/Write and Bash write verbs)
 │
@@ -117,6 +119,33 @@ New/modified hook detected
     ├── YES → Hook can parse input JSON normally
     └── NO → Hook must fail closed (exit 0 with deny JSON)
         → Verify this path explicitly in the drill
+```
+
+## 5. Verification evidence rules
+
+These rules apply whenever evaluating whether something "passed" — hook drills, test suites, verifier sessions, implementation reports.
+
+```
+Evaluating a "green" result
+├── A session reporting green is NOT evidence.
+│   → Read the artifact: the screenshot, the pixel value, the actual diff.
+│   → A session can report green while the underlying check never ran,
+│     ran on stale data, or tested the wrong thing.
+│
+├── A test suite that shrank after a fix is a silent regression.
+│   → Compare test count before and after.
+│   → A count decrease must be explained: which tests were removed and why?
+│   → If unexplained → ROUTE TO ARCHITECT: investigate before trusting the suite.
+│
+├── Direct invocation ≠ firing in a session.
+│   → A hook that works when run manually may not fire in a live session
+│     (registration, scope, race conditions).
+│   → Drill every new hook in a live session before trusting it.
+│
+└── False positives train bypass behaviour.
+    → A hook that fires on legitimate operations teaches agents to route around it.
+    → Precision in gates matters as much as coverage.
+    → If a hook is generating false positives → ROUTE TO ARCHITECT: narrow the pattern.
 ```
 
 ## Quick reference: who handles what

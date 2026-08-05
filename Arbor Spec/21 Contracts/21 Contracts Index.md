@@ -10,7 +10,7 @@ tags: [spec, implementation, contracts]
 |---|---|---|---|
 | C1 | [[21 Contracts/C1 SQLite Schema]] | `contracts/schema.sql` + migrations | **Hard** — freeze first |
 | C2 | [[21 Contracts/C2 Pack Schema]] | `contracts/pack.schema.json` + generated `.d.ts` | **Hard** — freeze first |
-| C3 | [[21 Contracts/C3 Tauri Commands]] | `contracts/commands.d.ts` | Firm (extends per phase) |
+| C3 | [[21 Contracts/C3 Tauri Commands]] | `contracts/commands.d.ts` | **Firm** — Phase 2 command set hardened 2026-08-05 |
 | C4 | [[21 Contracts/C4 Sympy Sidecar Protocol]] | `contracts/sidecar.schema.json` | Firm |
 | C5 | [[21 Contracts/C5 Orchestrator Jobs]] | `contracts/jobs.d.ts` | **Warm** — expect revision through Phase 4–5; tighten as phases complete |
 | C6 | [[21 Contracts/C6 Vault Layout]] | (documented paths; enforced by vault module tests) | Firm |

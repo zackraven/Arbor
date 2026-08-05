@@ -14,7 +14,7 @@ tags: [spec, decisions, log]
 - [ ] Local model for the teaching loop — feasible given how scripted packs are? (Research task; not v1. See [[10 Stack & Architecture]].)
 - [ ] Haiku vs Sonnet for runtime answer classification — needs empirical testing on real segment transcripts.
 - [ ] Baseline manifests — source A-level spec topic lists (public) and define the Year-1-BSc manifest. Format TBD.
-- [ ] Diagnostic bank size — is 10 slots × ~2 variants enough for test-out + retakes without verbatim repeats?
+- [x] Diagnostic bank size — closed for v1: minimum bank of ≥10; runtime draws exactly 10 per attempt. See C2 invariant and [[#C2-diagnostic-bank-2026-07-23]].
 - [ ] Concept-registry embedding model + similarity threshold for dedup.
 - [ ] ELK vs dagre — prototype both on a ~60-node DAG for layout quality and speed.
 - [ ] Maths input UX — raw LaTeX with preview vs structured editor.
@@ -427,3 +427,88 @@ The acceptance test `strict_mode_rejects_type_violations` in `tests/T-002/migrat
 **Takeaway:** in SQLite STRICT tables, type enforcement is asymmetric — integers coerce to text (TEXT affinity), but text does not coerce to integer. Tests for STRICT mode should use the text→integer direction.
 
 Files changed: `tests/T-002/migrations.rs`, `Arbor Spec/23 Tickets/T-002 SQLite Schema.md`, `Arbor Spec/12 Open Questions & Decisions Log.md`.
+
+**2026-08-05 — Phase 1→2 boundary: spec reconciliation + loop-health review + verification heuristics push.** {#phase1-boundary-2026-08-05}
+
+**Spec reconciliation.** Notes 00–12 were written before any code existed. Three notes required updates where reality diverged during C1/C2 hardening:
+
+1. **Note 09 (Storage)** — table sketch replaced with reference to the authoritative C1 contract. Key divergences from the original sketch: singular table names; `id` is the slug (no separate `slug` column); `node.status` values changed from `pack_pending|pack_ready|in_progress|completed` to `not_started|in_progress|completed`; all tables gained `STRICT` mode, ISO 8601 timestamps, and `_json`-suffixed TEXT columns for structured data; `edge` gained `id`, `tree_id`, `created_at` and dropped `provenance`; `graph_log` substantially richer (typed `change_type`, `entity_id`, `actor`); `review.source` values changed from `review|diagnostic|test` to `teaching|diagnostic|test|recall`.
+
+2. **Note 03 (Graph Model)** — node record updated to match C1 column names and types. Status values corrected. Category clarified as single TEXT (not "one or more"). Edge provenance dropped from the edge table; graph_log records the actor instead. Stored vs computed state separation made explicit.
+
+3. **Note 22 (Build Plan)** — Phase 1 scope corrected: C6 vault module was deferred (not needed until Phase 4 writes packs). Phase 1 delivered C1 schema + migrations, C2 pack validator + fixtures.
+
+**Open question closed:** "Diagnostic bank size" marked resolved — minimum bank of ≥10, runtime draws exactly 10 per attempt (decided 2026-07-23, never marked closed in the open questions list).
+
+**Verification heuristics pushed to /route skill.** Five enforceable rules from note 25 §"Verification heuristics" moved into `.claude/skills/route/SKILL.md` §5 "Verification evidence rules": (a) a green session report is not evidence — read the artifact; (b) a shrinking test suite is a silent regression until explained; (c) direct invocation ≠ firing in a session; (d) false positives train bypass behaviour; (e) self-protection probes go last in drills. Note 25 stays as history.
+
+**Loop-health review.** Computed from ticket records (T-001 through T-005):
+
+| Metric | Value | Interpretation |
+|--------|-------|----------------|
+| Blocked-rate | 4/5 (80%) | T-001 (recursion bug), T-002 (STRICT test, port drift, Tauri linkage), T-003 (shield over-reach, node deny, allErrors), T-005 (port typo) |
+| Rework-rate | 1/5 (20%) | T-001 reworked after beforeDevCommand infinite recursion |
+
+**Rework-rate correction (2026-08-05).** The initial report claimed 0% rework. T-001 was in fact reworked: the verifier found the `beforeDevCommand` infinite recursion, the implementer fixed it in a rework session, and the verifier re-verified. However, `status: rework` was never set in T-001's frontmatter — the rework was recorded as prose in the Implementation notes section ("Rework (2026-07-31): fix infinite-recursion in beforeDevCommand"). The session-log hook captures rework only via frontmatter `status:` transitions, so the event was invisible to automated metrics. **Fix applied:** CLAUDE.md verifier role now requires setting `status: rework` in ticket frontmatter, not just writing prose — prose is invisible to the loop-health instrumentation.
+
+**Blocked-rate is high but indicts distinct layers, not one systemic cause.** Breakdown:
+- 3 blocks from shield/hook issues (T-003 shield over-reach, T-003 node deny, T-001 false positive): tooling teething — expected during Phase 0 when hooks were being built; frequency should drop now that hooks are stable.
+- 2 blocks from ticket defects (T-005 port typo, T-002 STRICT test assumption): architect-side — the `/write-ticket` skill's validation steps should catch these. Action: verify that tickets written for Phase 2 have no port/path literals that could drift.
+- 2 blocks from contract gaps (T-003 allErrors, T-002 Tauri linkage): spec-side — C2 should have specified allErrors; T-002 should have named the Windows linkage issue. Both are now covered.
+- 1 block from an external factor (SQLite TEXT affinity coercion): unavoidable — SQLite behavioural surprise.
+
+**Rework-rate 20% indicts the verification layer** — the verifier caught the bug (good) but the rework wasn't formally recorded (bad). Both rates should decline in Phase 2: hooks are now stable (reducing blocks), and the rework-capture fix ensures future reworks are visible.
+
+**Phase-gate check: passed with deferral.** Phase 1's criterion is "fixture pack validates and loads; DB migrates from zero." Test results on 2026-08-05:
+- `pnpm test`: 77/77 passed (4 test files including T-003 pack-loader validation)
+- `cargo test`: 9/9 passed (T-002 migrations + contract sync + unit tests)
+- `pnpm lint`: exit 0 (tsc + clippy clean)
+
+**Deferral:** the two halves are proven independently but no single test crosses both subsystems (loads a validated fixture pack into a migrated DB). The full round-trip is structurally deferred to Phase 2's `seed_graph` command — the first consumer that touches both. This deferral exists because C6 (vault module) was itself deferred from Phase 1 to Phase 4, eliminating the pack→DB write path that would have been the integration point. The gate is honest about what it proves and what it doesn't; Phase 2's T-006 acceptance tests will close the gap.
+
+**C6 vault module.** Deferred from Phase 1 to Phase 4 (first consumer is the build pipeline's pack-writing stage). No action needed for Phase 2.
+
+Files changed: `Arbor Spec/09 Storage.md`, `Arbor Spec/03 Graph Model.md`, `Arbor Spec/22 Build Plan.md`, `.claude/skills/route/SKILL.md`, `Arbor Spec/12 Open Questions & Decisions Log.md`.
+
+**2026-08-05 — C3 Tauri Commands hardened for Phase 2; fixture tree decisions.** {#C3-phase2-2026-08-05}
+
+**C3 contract written.** Defines 8 Tauri commands for Phase 2: `list_trees`, `get_tree`, `get_graph`, `get_node`, `compute_unlock`, `get_graph_log`, `seed_graph`, `update_node_status`. Error contract uses namespaced codes (`db.not_found`, `graph.cycle_detected`, etc.). Mirror written to `contracts/commands.d.ts`. Freeze level: firm (extends per phase; existing signatures stable).
+
+**Fixture tree decisions:**
+1. **Two fixtures, not one.** A 12-node hand-designed fixture (`tests/fixtures/small-tree.json`) for unlock-computation unit tests where expected results are enumerable by hand. A ~60-node generated fixture (`tests/fixtures/large-tree.json`) for Phase 3 layout and vibe testing.
+2. **Subject: classical mechanics → Lagrangian mechanics** — recognisable enough for the user to judge structural sanity.
+3. **Shape constraints for the large fixture** (encoded in acceptance tests): ≥3 diamond merges, ≥1 node with 4+ parents, branch depth variance ≥3, ≥1 chain of ≥6 sequential dependencies, ≥1 node with ≥5 children, ≥4 categories.
+4. **Fixture location:** `tests/fixtures/`. These files are not protected by contract-shield (which protects `tests/T-NNN/*.test.ts|*.rs|*.sh` only). The architect writes them; implementers read but do not modify. No additional protection needed — the files are test infrastructure committed by architect sessions; any tampering would appear in verifier diffs.
+5. **Justifications in the large fixture are placeholder strings** — this is a layout fixture, not a curriculum artifact.
+
+**Phase 2 tickets written:** T-006 (command scaffold + seed/query commands), T-007 (unlock computation), T-008 (large fixture tree). Dependency chain: T-006 depends on T-002; T-007 and T-008 depend on T-006.
+
+**`open_or_init_memory` helper.** T-006 specifies a public `db::open_or_init_memory()` function that creates an in-memory SQLite database with the same pragmas and migrations as `open_or_init`. Required by all Phase 2+ Rust integration tests (no filesystem access needed for testing).
+
+**Command testability pattern.** Each Tauri command is split into two layers: a `pub fn xxx_impl(conn: &Connection, ...) -> Result<T, AppError>` with all logic, and a `#[tauri::command] pub fn xxx(db: State<DbConn>, ...) -> Result<T, AppError>` that locks the mutex and delegates. Tests call `_impl` directly — no Tauri runtime needed.
+
+Files changed: `Arbor Spec/21 Contracts/C3 Tauri Commands.md` (new), `contracts/commands.d.ts` (new), `Arbor Spec/21 Contracts/21 Contracts Index.md`, `Arbor Spec/22 Build Plan.md`, `tests/fixtures/small-tree.json` (new), `Arbor Spec/23 Tickets/T-006 Tauri Commands Scaffold.md` (new), `Arbor Spec/23 Tickets/T-007 Unlock Computation.md` (new), `Arbor Spec/23 Tickets/T-008 Large Fixture Tree.md` (new), `tests/T-006/commands.rs` (new), `tests/T-007/unlock.rs` (new), `tests/T-008/large_fixture.rs` (new), `Arbor Spec/12 Open Questions & Decisions Log.md`.
+
+**2026-08-05 — Three boundary corrections before Phase 2 dispatch.** {#phase2-boundary-corrections-2026-08-05}
+
+**Correction 1 — Rework-rate was undercounted.** T-001 was reworked (beforeDevCommand infinite recursion caught by verifier, fixed in a rework session), but `status: rework` was never set in the ticket frontmatter. The rework was recorded as prose in the Implementation notes section ("Rework (2026-07-31)"), which is invisible to the session-log hook's `ticket_status` extraction (it captures only `status:` frontmatter transitions). Corrected rate: **1/5 (20%)**, not 0%. **Fix:** CLAUDE.md verifier role now mandates `status: rework` in frontmatter for rework verdicts — prose-only rework notes are explicitly called out as invisible to loop-health instrumentation.
+
+**Correction 2 — Phase 1 gate recorded as "passed with deferral."** The original report said both halves pass and deferred the integration to Phase 2 as "acceptable." This is accurate but insufficiently honest — a gate that passes on partial evidence should say so in its status, not present the deferral as a footnote. Note 22 updated: Phase 1 gate status is now "passed with deferral" with an explicit statement of what's proven (both subsystems independently) and what's deferred (the cross-subsystem round-trip, which `seed_graph` in T-006 will close).
+
+**Correction 3 — T-008 restructured: architect writes fixture, implementer validates.** The original T-008 asked the implementer to generate the 60-node fixture, which is architect work (content authoring, physics structure). Restructured: the architect generates `tests/fixtures/large-tree.json`, the user eyeballs it for physics sanity (explicit human checkpoint in the ticket — shape tests can pass on structurally valid nonsense), then the implementer ticket only wires the test entry and runs the pre-written validation. The implementer creates no files; `tests/fixtures/large-tree.json` is listed as "ALREADY WRITTEN by architect."
+
+**`tests/fixtures/` protection status confirmed.** Contract-shield protects `tests/T-[0-9]+/[^/]+\.(test\.ts|rs|sh)$` — this matches test files directly inside `tests/T-NNN/` but does NOT match `tests/fixtures/` (not a `T-NNN` directory). Bash-guard has no mention of fixtures. The path is unprotected by design: the architect writes fixture files, implementers read them. No T-003-style breakage possible.
+
+Files changed: `CLAUDE.md`, `Arbor Spec/22 Build Plan.md`, `Arbor Spec/23 Tickets/T-008 Large Fixture Tree.md`, `Arbor Spec/12 Open Questions & Decisions Log.md`.
+
+**2026-08-05 — Shape constraints as acceptance tests can induce prerequisite bloat.** {#shape-constraint-bloat-2026-08-05}
+
+During user review of the 60-node fixture tree, the "at least one node with 4+ parents" acceptance criterion was flagged as a likely cause of inflated prerequisites on the Lagrangian mechanics node (5 parents, where a real curriculum needs ~3). The constraint induced the architect to add D'Alembert's principle and principle of least action as separate prerequisites alongside Euler-Lagrange — historically, these are competing derivation routes to the same destination, not independent prerequisites a learner needs simultaneously.
+
+**Observation:** shape-constraint-as-test can manufacture the exact prerequisite bloat that the build pipeline's justification test (Phase 4) exists to prevent. When a fixture is hand-authored to satisfy structural acceptance criteria, the author is incentivised to pad edges to hit counts, producing a graph that passes the shape test but violates the pedagogical invariant "every edge must be independently justified."
+
+**Impact on Phase 4:** the real build pipeline's decomposition step will face the same tension — structural targets (minimum fan-in, diamond count) vs pedagogical integrity (no unjustified prerequisites). The justification test must be strong enough to reject edges added only to satisfy structural metrics. This is a design constraint on the concept registry and pruning stages.
+
+**No fixture change needed.** The inflated Lagrangian node is acceptable in a layout fixture (it's not a curriculum artifact). The observation is recorded for Phase 4 design.
+
+Files changed: `Arbor Spec/12 Open Questions & Decisions Log.md`.
