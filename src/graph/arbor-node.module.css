@@ -1,0 +1,41 @@
+.node {
+  width: var(--node-width);
+  min-height: var(--node-min-height);
+  border-radius: var(--node-border-radius);
+  border: var(--node-border-width) solid var(--color-locked);
+  background: var(--color-surface);
+  padding: var(--spacing-sm) var(--spacing-md);
+  box-sizing: border-box;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.title {
+  font-size: var(--typography-font-size-sm);
+  font-weight: var(--typography-font-weight-medium);
+  color: var(--color-text-secondary);
+  line-height: var(--typography-line-height-tight);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.oneLiner {
+  font-size: var(--typography-font-size-xs);
+  color: var(--color-text-dim);
+  line-height: var(--typography-line-height-normal);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.handle {
+  background: var(--color-locked);
+  width: 6px;
+  height: 6px;
+  border: none;
+}

@@ -1,15 +1,15 @@
+import { useEffect } from 'react';
+import GraphView from './graph/graph-view';
+import './tokens.css';
+
 export default function App() {
+  useEffect(() => {
+    document.title = 'Arbor';
+  }, []);
+
   return (
-    <div
-      style={{
-        width: '100vw',
-        height: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
-      <span>Arbor</span>
+    <div style={{ width: '100vw', height: '100vh' }}>
+      <GraphView />
     </div>
   );
 }
