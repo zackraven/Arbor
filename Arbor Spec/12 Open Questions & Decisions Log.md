@@ -16,7 +16,7 @@ tags: [spec, decisions, log]
 - [ ] Baseline manifests — source A-level spec topic lists (public) and define the Year-1-BSc manifest. Format TBD.
 - [x] Diagnostic bank size — closed for v1: minimum bank of ≥10; runtime draws exactly 10 per attempt. See C2 invariant and [[#C2-diagnostic-bank-2026-07-23]].
 - [ ] Concept-registry embedding model + similarity threshold for dedup.
-- [ ] ELK vs dagre — prototype both on a ~60-node DAG for layout quality and speed.
+- [x] ELK vs dagre — closed: ELK with LayoutEngine adapter interface. See [[#phase3-elk-and-zustand-2026-08-06]].
 - [ ] Maths input UX — raw LaTeX with preview vs structured editor.
 - [ ] Adaptive placement test (v1.5) — design the difficulty-bisection probe when revisiting.
 - [ ] Visualisations in teaching (v2) — scope entirely unexamined by design.
@@ -512,3 +512,23 @@ During user review of the 60-node fixture tree, the "at least one node with 4+ p
 **No fixture change needed.** The inflated Lagrangian node is acceptable in a layout fixture (it's not a curriculum artifact). The observation is recorded for Phase 4 design.
 
 Files changed: `Arbor Spec/12 Open Questions & Decisions Log.md`.
+
+**2026-08-06 — Phase 3 design decisions: ELK layout, zustand state, C7 design tokens.** {#phase3-elk-and-zustand-2026-08-06}
+
+**ELK vs dagre — closed: ELK with adapter interface.** ELK is chosen as the primary layout engine for Phase 3. Rationale: ELK's layered algorithm (ELK Layered / `org.eclipse.elk.layered`) handles DAGs with shared prerequisites (diamond merges, high fan-in) better than dagre's simpler Sugiyama implementation. ELK supports configurable crossing minimisation (`LAYER_SWEEP`), edge routing (`SPLINES`), and directional layout (`UP` — root at bottom, leaves at top, matching the learner's upward progression). `elkjs` provides a WASM/JS port with web worker support for async layout.
+
+**Adapter interface for cheap swap.** A `LayoutEngine` interface (`{ layout(nodes, edges): Promise<LayoutResult> }`) sits between the graph view and ELK. If ELK proves too slow or produces poor layouts on real trees (Phase 4+), swapping to dagre or a custom algorithm requires only a new implementation of the interface — no graph-view changes. The interface is deliberately minimal (one method, async return) to avoid over-constraining the adapter.
+
+**Frontend state management — closed: zustand.** Zustand is chosen over Redux, Jotai, and React Context for frontend state management. Rationale: zustand's API surface is tiny (one `create` call per store), it has no boilerplate (no providers, no action types, no reducers), it supports TypeScript generics natively, and its subscription model integrates cleanly with React Flow's controlled component pattern. One store per domain: `graph-store.ts` (selected node, graph data, unlock statuses), `tree-store.ts` (selected tree, tree list).
+
+**C7 Design Tokens contract created.** {#phase3-design-tokens-2026-08-06}
+
+New contract `C7 Design Tokens` (freeze: firm) defines the visual design language: dark palette (`#0e0e10` base, `#1a1a1f` surface, `#e8e6e3` text), node state colours (green completed, blue unlocked with glow, amber in-progress, gray locked), spacing scale (4px unit), motion budget (120/200/350ms), system font stack, node dimensions (180px wide), and graph defaults. Mirror: `contracts/tokens.ts`.
+
+**Token-lint invariant:** no hardcoded colour values in `src/` except `src/tokens.css` (the CSS custom property bridge). Enforced by a vitest test (`tests/T-009/token-lint.test.ts`) that scans all source files.
+
+**Frontend-design skill created.** `.claude/skills/frontend-design/SKILL.md` — aesthetic constitution referenced by all Phase 3+ UI tickets. Covers CSS modules pattern, token usage, zustand store pattern, React Flow conventions, state-to-visual mapping, file naming, and Tauri/non-Tauri detection.
+
+Note 20 updated: frontend state management TODO closed. Note 22: no change needed (Phase 3 description already matches). Contracts index: C7 added.
+
+Files changed: `Arbor Spec/21 Contracts/C7 Design Tokens.md` (new), `contracts/tokens.ts` (new), `.claude/skills/frontend-design/SKILL.md` (new), `Arbor Spec/21 Contracts/21 Contracts Index.md`, `Arbor Spec/20 Architecture.md`, `Arbor Spec/12 Open Questions & Decisions Log.md`.

@@ -15,7 +15,7 @@ arbor/
     graph/                 # graph view, layout adapters (React Flow + ELK)
     learn/                 # learning view, diagnostic UI, recall runner
     stats/                 # stats tab
-    state/                 # frontend state mgmt (TODO(architect): choose — zustand favoured)
+    state/                 # frontend state mgmt (zustand — one store per domain)
     api/                   # typed wrappers over Tauri commands (generated from contracts)
   src-tauri/               # Rust backend
     src/
@@ -52,7 +52,7 @@ Rule: `contracts/` files are generated/copied from `21 Contracts/` notes by an a
 
 ## TODO(architect) queue
 
-- [ ] Frontend state management choice + patterns
+- [x] Frontend state management choice + patterns — closed: zustand, one store per domain. See [[12 Open Questions & Decisions Log#phase3-elk-and-zustand-2026-08-06]].
 - [ ] FSRS: rs-fsrs in backend vs ts-fsrs in frontend (leaning backend — single owner of review state)
 - [ ] Streaming transport for teach sessions (Tauri events vs channel)
 - [ ] Orchestrator persistence details beyond `build_state` sketch

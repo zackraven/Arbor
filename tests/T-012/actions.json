@@ -1,0 +1,9 @@
+[
+  { "type": "screenshot", "name": "tree-list" },
+  { "type": "click", "selector": "[data-testid='tree-card']" },
+  { "type": "wait", "ms": 2000 },
+  { "type": "screenshot", "name": "graph-view" },
+  { "type": "click", "selector": "[data-testid='arbor-node']" },
+  { "type": "wait", "ms": 500 },
+  { "type": "screenshot", "name": "summary-panel" }
+]

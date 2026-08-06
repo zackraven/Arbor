@@ -15,5 +15,11 @@
     "noUncheckedIndexedAccess": true,
     "types": ["node"]
   },
-  "include": ["src", "tests", "vite.config.ts", "vitest.config.ts"]
+  "include": ["src", "tests", "vite.config.ts", "vitest.config.ts"],
+  "exclude": [
+    "tests/T-009",
+    "tests/T-010",
+    "tests/T-011",
+    "tests/T-012"
+  ]
 }

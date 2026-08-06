@@ -14,6 +14,7 @@ tags: [spec, implementation, contracts]
 | C4 | [[21 Contracts/C4 Sympy Sidecar Protocol]] | `contracts/sidecar.schema.json` | Firm |
 | C5 | [[21 Contracts/C5 Orchestrator Jobs]] | `contracts/jobs.d.ts` | **Warm** — expect revision through Phase 4–5; tighten as phases complete |
 | C6 | [[21 Contracts/C6 Vault Layout]] | (documented paths; enforced by vault module tests) | Firm |
+| C7 | [[21 Contracts/C7 Design Tokens]] | `contracts/tokens.ts` | **Firm** — Phase 3 token set established 2026-08-06 |
 
 Freeze guidance (from planning): harden the boundaries we're most sure of (pack schema, DB) first; keep orchestrator internals warm until the build pipeline has run for real.
 
