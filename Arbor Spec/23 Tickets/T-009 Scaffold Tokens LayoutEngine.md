@@ -1,7 +1,7 @@
 ---
 id: T-009
 phase: 3
-status: queued
+status: done
 depends_on: [T-006]
 ---
 
@@ -22,8 +22,8 @@ The user must install these before dispatching:
 - Architecture: [[20 Architecture#Repository layout]], [[20 Architecture#Naming conventions]], [[20 Architecture#Module boundaries]]
 
 ## Files
-**Create:** `src/tokens.css`, `src/graph/layout-engine.ts`, `src/state/graph-store.ts`, `src/api/tauri-commands.ts`
-**Modify:** `src/main.tsx` (import `tokens.css`), `vitest.config.ts` (add happy-dom environment for graph tests), `tsconfig.json` (remove `tests/T-009` from the `exclude` array)
+**Create:** `src/tokens.css`, `src/vite-env.d.ts`, `src/graph/layout-engine.ts`, `src/state/graph-store.ts`, `src/api/tauri-commands.ts`
+**Modify:** `src/main.tsx` (import `tokens.css`), `src/App.tsx` (remove hardcoded `backgroundColor: '#111'` — the body reset in `tokens.css` handles this now), `vitest.config.ts` (add happy-dom environment for graph tests), `tsconfig.json` (remove `tests/T-009` from the `exclude` array)
 
 ## Steps
 
@@ -65,9 +65,11 @@ The user must install these before dispatching:
    }
    ```
 
-2. **Modify `src/main.tsx`** — add `import './tokens.css';` as the first import (before React imports), so the CSS custom properties are available globally.
+2. **Create `src/vite-env.d.ts`** — a single line: `/// <reference types="vite/client" />`. This provides ambient type declarations for CSS imports, JSON imports, and other Vite-handled asset types. Standard Vite convention.
 
-3. **Create `src/graph/layout-engine.ts`** — define the `LayoutEngine` interface and `ElkLayoutEngine` implementation:
+3. **Modify `src/main.tsx`** — add `import './tokens.css';` as the first import (before React imports), so the CSS custom properties are available globally.
+
+4. **Create `src/graph/layout-engine.ts`** — define the `LayoutEngine` interface and `ElkLayoutEngine` implementation:
 
    ```typescript
    // Types for layout input/output
@@ -108,7 +110,7 @@ The user must install these before dispatching:
    - ELK is instantiated once in the constructor: `this.elk = new ELK();`
    - The ELK graph maps edges using `sources` and `targets` arrays (ELK's API), NOT `source`/`target` strings.
 
-4. **Create `src/state/graph-store.ts`** — zustand store for graph state:
+5. **Create `src/state/graph-store.ts`** — zustand store for graph state:
 
    ```typescript
    import { create } from 'zustand';
@@ -141,7 +143,7 @@ The user must install these before dispatching:
    }));
    ```
 
-5. **Create `src/api/tauri-commands.ts`** — typed async wrappers over Tauri's `invoke()`. Each function calls `invoke()` from `@tauri-apps/api/core` with the correct command name and parameter object. Functions to implement:
+6. **Create `src/api/tauri-commands.ts`** — typed async wrappers over Tauri's `invoke()`. Each function calls `invoke()` from `@tauri-apps/api/core` with the correct command name and parameter object. Functions to implement:
    - `listTrees(): Promise<TreeSummary[]>`
    - `getTree(treeId: string): Promise<Tree>`
    - `getGraph(treeId: string): Promise<Graph>`
@@ -153,13 +155,13 @@ The user must install these before dispatching:
 
    Import types from `../../contracts/commands`. Import `invoke` from `@tauri-apps/api/core`. Use C3's exact parameter names in the invoke calls (e.g. `invoke('get_graph', { treeId })` — Tauri uses camelCase in JS, snake_case in Rust; the `#[tauri::command]` macro handles the conversion. Pass params as `{ treeId }` not `{ tree_id }`).
 
-6. **Modify `tsconfig.json`** — remove `"tests/T-009"` from the `exclude` array. This allows tsc to type-check the T-009 test files. (The architect pre-committed test files for T-009–T-012 and excluded them from tsc until each ticket's modules are created.)
+7. **Modify `tsconfig.json`** — remove `"tests/T-009"` from the `exclude` array. This allows tsc to type-check the T-009 test files. (The architect pre-committed test files for T-009–T-012 and excluded them from tsc until each ticket's modules are created.)
 
-7. **Modify `vitest.config.ts`** — two changes:
+8. **Modify `vitest.config.ts`** — two changes:
    - Change `environment: 'node'` to `environment: 'happy-dom'` so DOM-dependent tests (React component tests in T-010+) work. This is safe for existing node-only tests (happy-dom provides a superset of the node environment for test purposes).
    - Change `include: ['tests/**/*.test.ts']` to `include: ['tests/**/*.test.{ts,tsx}']` so JSX test files (`.test.tsx`) are picked up by vitest. Future tickets (T-010+) use `.test.tsx` for component tests.
 
-8. **Delete `src/graph/.gitkeep` and `src/state/.gitkeep`** — these placeholder files are replaced by real modules. Remove them if they exist (the `.gitkeep` files were created in T-001 to hold the empty directories in git).
+9. **Delete `src/graph/.gitkeep` and `src/state/.gitkeep`** — these placeholder files are replaced by real modules. Remove them if they exist (the `.gitkeep` files were created in T-001 to hold the empty directories in git).
 
 ## Acceptance criteria
 - [ ] `tests/T-009/layout-engine.test.ts` passes — ELK produces valid coordinates for a 5-node graph; all positions are finite numbers; no nodes overlap at the same coordinates
@@ -177,7 +179,33 @@ The user must install these before dispatching:
 - **If anything is ambiguous: STOP. Write the question under Blocked, set `status: blocked`, end the session. Never choose.**
 
 ## Blocked
+Resolved: architect added `src/vite-env.d.ts` to Files → Create and added Step 2.
+
+Resolved: architect added `src/App.tsx` to Files → Modify — remove the hardcoded `backgroundColor: '#111'` since the body reset in `tokens.css` handles it.
 
 ## Implementation notes
 
+**Files created:**
+- `src/tokens.css` — already existed and was correct; all C7 design tokens mapped to CSS custom properties on `:root`, plus a body reset block.
+- `src/vite-env.d.ts` — single line `/// <reference types="vite/client" />` for ambient CSS import types.
+- `src/graph/layout-engine.ts` — `LayoutEngine` interface, `LayoutNode`/`LayoutEdge`/`LayoutResult` types, and `ElkLayoutEngine` class wrapping `elkjs/lib/elk.bundled.js` with the specified ELK layout options (`layered`, `UP`, spline routing, layer sweep crossing minimisation).
+- `src/state/graph-store.ts` — zustand `useGraphStore` with `nodes`, `edges`, `unlockStatuses`, `selectedNodeId`, `treeId` state and `setGraph`, `setUnlockStatuses`, `selectNode`, `clear` actions.
+- `src/api/tauri-commands.ts` — typed async wrappers over `invoke()` for all eight C3 commands.
+
+**Files modified:**
+- `src/main.tsx` — `import './tokens.css';` added as the first import.
+- `src/App.tsx` — removed hardcoded `backgroundColor: '#111'` inline style; body background is now handled by the CSS reset in `tokens.css`.
+- `tsconfig.json` — removed `"tests/T-009"` from the `exclude` array.
+- `vitest.config.ts` — changed `environment` to `'happy-dom'` and `include` pattern to `'tests/**/*.test.{ts,tsx}'`.
+
+**Files deleted:**
+- `src/graph/.gitkeep` and `src/state/.gitkeep` — placeholder files removed now that real modules occupy those directories.
+
+**Nits not acted on:** none.
+
 ## Verification
+Verification: pass — 2026-08-06
+- Integrity check: no protected paths in diff
+- 12/12 tests pass (layout-engine, graph-store, token-lint)
+- `pnpm lint` exits 0
+- Note: verifier flagged `@testing-library/react` in package.json as out-of-scope, but this is a false positive — the dependency was pre-installed by the user before session start (git status showed `M package.json` at conversation start). Implementer did not add it.

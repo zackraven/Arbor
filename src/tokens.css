@@ -1,0 +1,75 @@
+:root {
+  /* ── Color ──────────────────────────────────────────────────────────────── */
+  --color-base: #0e0e10;
+  --color-surface: #1a1a1f;
+  --color-surface-alt: #242429;
+  --color-border: #2e2e35;
+  --color-text-primary: #e8e6e3;
+  --color-text-secondary: #9a9a9a;
+  --color-text-dim: #6a6a6a;
+  --color-completed: #4caf50;
+  --color-unlocked: #42a5f5;
+  --color-in-progress: #ffa726;
+  --color-locked: #555555;
+  --color-glow-color: rgba(66, 165, 245, 0.35);
+  --color-glow-radius: 12px;
+  --color-selected-ring: #42a5f5;
+  --color-hover-overlay: rgba(255, 255, 255, 0.04);
+
+  /* ── Spacing ─────────────────────────────────────────────────────────────── */
+  --spacing-unit: 4px;
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-xxl: 48px;
+
+  /* ── Motion ──────────────────────────────────────────────────────────────── */
+  --motion-duration-fast: 120ms;
+  --motion-duration-normal: 200ms;
+  --motion-duration-slow: 350ms;
+  --motion-easing: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ── Typography ──────────────────────────────────────────────────────────── */
+  --typography-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --typography-font-size-xs: 11px;
+  --typography-font-size-sm: 13px;
+  --typography-font-size-base: 14px;
+  --typography-font-size-lg: 16px;
+  --typography-font-size-xl: 20px;
+  --typography-font-size-xxl: 28px;
+  --typography-font-weight-normal: 400;
+  --typography-font-weight-medium: 500;
+  --typography-font-weight-bold: 600;
+  --typography-line-height-tight: 1.2;
+  --typography-line-height-normal: 1.5;
+
+  /* ── Node ────────────────────────────────────────────────────────────────── */
+  --node-width: 180px;
+  --node-min-height: 50px;
+  --node-border-radius: 8px;
+  --node-border-width: 2px;
+
+  /* ── Graph ───────────────────────────────────────────────────────────────── */
+  --graph-edge-color: #3a3a42;
+  --graph-edge-width: 1.5px;
+  --graph-background: #0e0e10;
+
+  /* ── Progress ring ───────────────────────────────────────────────────────── */
+  --progress-ring-size: 40px;
+  --progress-ring-stroke-width: 3px;
+  --progress-ring-track-color: #2e2e35;
+  --progress-ring-fill-color: #4caf50;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-base);
+  color: var(--color-text-primary);
+  font-family: var(--typography-font-family);
+  font-size: var(--typography-font-size-base);
+  line-height: var(--typography-line-height-normal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
