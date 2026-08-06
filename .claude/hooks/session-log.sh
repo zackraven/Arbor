@@ -38,7 +38,7 @@ fi
 TICKET_STATUS=""
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // ""')
 if [[ "$TOOL_NAME" == "Edit" || "$TOOL_NAME" == "Write" ]] && \
-   [[ "$FILE_PATH" == *"23 Tickets/"*".md" ]]; then
+   [[ "$FILE_PATH" == *"23 Tickets/"*".md" || "$FILE_PATH" == *"23 Tickets/state/"*".md" ]]; then
     # Extract status from new_string (Edit) or content (Write), first occurrence
     NEW_CONTENT=$(echo "$INPUT" | jq -r '.tool_input.new_string // .tool_input.content // ""')
     if [[ -n "$NEW_CONTENT" ]]; then

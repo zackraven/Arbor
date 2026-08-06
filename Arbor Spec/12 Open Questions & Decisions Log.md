@@ -532,3 +532,41 @@ New contract `C7 Design Tokens` (freeze: firm) defines the visual design languag
 Note 20 updated: frontend state management TODO closed. Note 22: no change needed (Phase 3 description already matches). Contracts index: C7 added.
 
 Files changed: `Arbor Spec/21 Contracts/C7 Design Tokens.md` (new), `contracts/tokens.ts` (new), `.claude/skills/frontend-design/SKILL.md` (new), `Arbor Spec/21 Contracts/21 Contracts Index.md`, `Arbor Spec/20 Architecture.md`, `Arbor Spec/12 Open Questions & Decisions Log.md`.
+
+**2026-08-06 — Edge routing: hybrid approach (straight adjacent, routed long).** {#edge-routing-hybrid-2026-08-06}
+
+The human aesthetic checkpoint on T-010 requested straight diagonal edges (requests 3–4) and minimal crossings (request 2). These conflict for long-span edges: in a depth-9 fixture, an edge spanning 4+ layers will cut across intervening nodes if drawn straight. ELK's layered algorithm inserts dummy nodes for multi-layer spans; bends keep long edges in clear channels.
+
+**Decision:** use ELK's `POLYLINE` edge routing globally. Adjacent-layer edges are naturally straight (no bends needed). Long-span edges will cross nodes — accepted because (a) the crossing minimisation pass (`LAYER_SWEEP`, thoroughness 30) moves most long edges to the graph periphery, (b) the alternative (`ORTHOGONAL`) adds right-angle bends to every edge including short ones, which conflicts with the "straight lines" request, and (c) `SPLINES` adds curves to adjacent edges which is visually noisy. The tradeoff is explicit: straight everywhere, with crossings on long spans mitigated by crossing minimisation.
+
+Alternatives rejected: (a) straight everywhere with no mitigation — unacceptable for 60-node fixture; (b) ORTHOGONAL — forces corners on adjacent edges; (c) SPLINES — curves on short edges look busy. Option (b) from the user's analysis was preferred but ELK doesn't support per-edge routing mode, so POLYLINE (closest to the intent) was chosen.
+
+C7 updated: `tokens.elk.edgeRouting = 'POLYLINE'`. Skill updated.
+
+**2026-08-06 — Coordinate transform: y-flip in layout adapter.** {#coordinate-transform-2026-08-06}
+
+The human aesthetic checkpoint (request 7) asked for top-to-bottom orientation: basics at the bottom, advanced at the top ("trunk to treetop"). `direction: 'UP'` was already set in ELK, but the rendered graph appeared inverted.
+
+**Root cause:** ELK's `direction: 'UP'` reverses the layer ORDER (root is placed in the last layer), but ELK's coordinate space always has y increasing downward. When the adapter passes these coordinates directly to React Flow (which also has y increasing downward), the root ends up at the bottom of ELK's space but at the TOP of the screen — the opposite of intent.
+
+**Fix:** the `ElkLayoutEngine` adapter must apply an explicit y-flip after layout: `y_out = maxY - y_elk - nodeHeight`. This is a coordinate transform, not a config value — changing `direction` to `'DOWN'` would reverse layer order (wrong), and flipping a constant until it looks right would be fragile. The transform is now specified in C7 (`tokens.elk.yFlip = true`) and documented as an adapter responsibility.
+
+C7 updated: `tokens.elk.yFlip` added. Skill updated: y-flip documented in LayoutEngine adapter section.
+
+**2026-08-06 — Semantic token restructure: theme layer, light default, circular nodes.** {#semantic-token-restructure-2026-08-06}
+
+Human aesthetic checkpoint on T-010 returned eight design change requests. Three structural changes to C7:
+
+1. **Semantic token architecture.** The previous C7 had literal colour values hardcoded in the token object. If a dark theme were later added, every value would need to be changed. Restructured: a `lightTheme` object provides concrete values; `tokens.color.*` references `lightTheme.*` by name. A future dark theme is a second object with the same shape, selected at runtime. Components always use `tokens.*`, never the theme object directly.
+
+2. **Light theme default.** Previous dark palette (`#0e0e10` base, `#1a1a1f` surface) replaced with light palette (`#f5f5f5` base, `#ffffff` surface). Node state accent colours adjusted for light-background contrast (darker greens, blues, ambers). Dark theme deferred — no toggle UI.
+
+3. **Circular nodes with label inside.** Previous rectangular nodes (180×50px, rounded corners) replaced with circles (80px diameter). Module name is rendered inside the circle (10px font, up to 3 lines, ellipsis overflow). ELK dimensions match the circle (80×80px). Node spacing tightened (30px within-layer, 60px between-layer) for the "taller than wide" request.
+
+4. **ELK configuration made authoritative.** Previous ELK options were hardcoded in `layout-engine.ts`. Now specified in `tokens.elk` — the layout engine reads from the contract. Added crossing minimisation thoroughness (30), and documented the y-flip requirement.
+
+Also closed: **shield gap for ticket files.** The orchestrator twice offered to "act as architect" to edit tickets. Investigation confirmed `Arbor Spec/23 Tickets/` was unprotected by any hook. Fixed: contract-shield now protects ticket spec files. Mutable state (status, blocked, implementation notes, verification) moved to state sidecars (`23 Tickets/state/T-NNN.md`) which are writable by all roles. commit-gate updated to read from sidecars. CLAUDE.md updated: sidecar pattern documented, orchestrator self-declaration of role changes explicitly forbidden. 53 smoke tests pass (7 new cases for ticket + sidecar protection).
+
+Also fixed: **`.ico` build regression.** `src-tauri/tauri.conf.json` had `"icon": []` since T-001 — the icon file existed at `src-tauri/icons/icon.ico` but was never wired into the bundle config. `pnpm build` failed at MSI bundler stage. Fix: set `"icon": ["icons/icon.ico"]`. This was a T-001 gap, not a regression — the verifier missed it because the MSI bundler may not have been exercised during verification.
+
+Files changed: `Arbor Spec/21 Contracts/C7 Design Tokens.md`, `contracts/tokens.ts`, `.claude/skills/frontend-design/SKILL.md`, `.claude/hooks/contract-shield.sh`, `.claude/hooks/commit-gate.sh`, `.claude/hooks/git-integrity-check.sh`, `.claude/hooks/session-log.sh`, `tests/T-004/contract-shield-smoke.sh`, `Arbor Spec/23 Tickets/_Ticket Template.md`, `Arbor Spec/23 Tickets/state/T-001.md` through `T-013.md` (new sidecar files), `Arbor Spec/23 Tickets/T-011 Node Visual States.md` (dependency updated), `Arbor Spec/23 Tickets/T-013 Design Rework — Circular Nodes, Light Theme, ELK Reconfig.md` (new patch ticket), `src-tauri/tauri.conf.json`, `CLAUDE.md`, `Arbor Spec/12 Open Questions & Decisions Log.md`.

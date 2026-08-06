@@ -3,13 +3,16 @@
 # Blocks git commit unless the ticket referenced in the commit message
 # has status: implemented or status: done.
 # Format: "T-NNN: short description"
+#
+# Status is read from the state sidecar (23 Tickets/state/T-NNN.md),
+# NOT from the main ticket file (which is architect-only / protected).
 
 set -uo pipefail
 
 INPUT=$(cat)
 COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // empty')
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(pwd)}"
-TICKETS_DIR="$PROJECT_DIR/Arbor Spec/23 Tickets"
+STATE_DIR="$PROJECT_DIR/Arbor Spec/23 Tickets/state"
 
 # Only act on git commit commands
 if ! echo "$COMMAND" | grep -qE 'git\s+commit'; then
@@ -38,21 +41,21 @@ if [[ -z "$TICKET_ID" ]]; then
     exit 0
 fi
 
-# Find the ticket file
-TICKET_FILE=$(find "$TICKETS_DIR" -maxdepth 1 -name "${TICKET_ID} *.md" 2>/dev/null | head -1)
+# Find the state sidecar file
+STATE_FILE="$STATE_DIR/${TICKET_ID}.md"
 
-if [[ -z "$TICKET_FILE" ]]; then
+if [[ ! -f "$STATE_FILE" ]]; then
     jq -n --arg tid "$TICKET_ID" '{
         hookSpecificOutput: {
             hookEventName: "PreToolUse",
-            additionalContext: ("commit-gate: ticket file for " + $tid + " not found in 23 Tickets/. Check the ticket ID.")
+            additionalContext: ("commit-gate: state sidecar for " + $tid + " not found at 23 Tickets/state/" + $tid + ".md. Check the ticket ID.")
         }
     }'
     exit 0
 fi
 
-# Parse frontmatter status
-STATUS=$(grep -m1 '^status:' "$TICKET_FILE" | sed 's/^status:[[:space:]]*//' | sed 's/[[:space:]]*#.*//' | tr -d '[:space:]')
+# Parse frontmatter status from sidecar
+STATUS=$(grep -m1 '^status:' "$STATE_FILE" | sed 's/^status:[[:space:]]*//' | sed 's/[[:space:]]*#.*//' | tr -d '[:space:]')
 
 if [[ "$STATUS" == "implemented" ]] || [[ "$STATUS" == "done" ]]; then
     exit 0  # allow

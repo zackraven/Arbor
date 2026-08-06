@@ -3,6 +3,8 @@
 # Blocks writes to:
 #   • contracts/                        (schema, migrations, pack schema)
 #   • Arbor Spec/21 Contracts/          (spec source of truth for contracts)
+#   • Arbor Spec/23 Tickets/*.md         (ticket spec files — architect-only)
+#     (but NOT Arbor Spec/23 Tickets/state/ — sidecar state files are writable)
 #   • tests/T-NNN/*.test.ts|*.rs|*.sh   (acceptance test files only — fixtures are writable)
 #   • .claude/hooks/                    (self-protection)
 #   • .claude/settings.json             (self-protection)
@@ -40,7 +42,7 @@ deny_contract() {
         hookSpecificOutput: {
             hookEventName: "PreToolUse",
             permissionDecision: "deny",
-            permissionDecisionReason: ("contract-shield: \"" + $p + "\" is a protected file (contract, acceptance test, or hook). Launch with ARBOR_ROLE=architect to edit. Implementers: write questions in the ticket ## Blocked section and end the session.")
+            permissionDecisionReason: ("contract-shield: \"" + $p + "\" is a protected file (contract, ticket, acceptance test, or hook). Launch with ARBOR_ROLE=architect to edit. Implementers: write questions in the ticket ## Blocked section and end the session.")
         }
     }'
 }
@@ -56,8 +58,12 @@ is_protected_path() {
     # tests/ pattern: only top-level test files (*.test.ts, *.rs, *.sh) are protected.
     # Subdirectories (fixtures/, snapshots/, etc.) are NOT matched, so implementers
     # can write fixture data without a workaround.
+    # First check: is this a ticket state sidecar? If so, NOT protected.
+    if echo "$path" | grep -qE '(^|/)Arbor Spec/23 Tickets/state/'; then
+        return 1
+    fi
     echo "$path" | grep -qE \
-        '(^|/)contracts/|(^|/)Arbor Spec/21 Contracts/|(^|/)tests/T-[0-9]+/[^/]+\.(test\.ts|rs|sh)$|(^|/)\.claude/(hooks/|settings\.json$|agents/|skills/)'
+        '(^|/)contracts/|(^|/)Arbor Spec/21 Contracts/|(^|/)Arbor Spec/23 Tickets/|(^|/)tests/T-[0-9]+/[^/]+\.(test\.ts|rs|sh)$|(^|/)\.claude/(hooks/|settings\.json$|agents/|skills/)'
 }
 
 # ── Edit / Write ──────────────────────────────────────────────────────────────
@@ -91,9 +97,13 @@ elif [[ "$TOOL_NAME" == "Bash" ]]; then
     # Regex: a protected path segment appears anywhere in the command string.
     # The tests/ sub-pattern mirrors is_protected_path: only top-level test-file
     # extensions are protected; fixtures/ subdirs are not.
-    PROTECTED_RE='(contracts/|Arbor Spec/21 Contracts/|tests/T-[0-9]+/[^/]*\.(test\.ts|rs|sh)|\.claude/(hooks|settings\.json|agents|skills))'
+    PROTECTED_RE='(contracts/|Arbor Spec/21 Contracts/|Arbor Spec/23 Tickets/|tests/T-[0-9]+/[^/]*\.(test\.ts|rs|sh)|\.claude/(hooks|settings\.json|agents|skills))'
 
-    if echo "$CMD" | grep -qE "$PROTECTED_RE"; then
+    # Exempt ticket state sidecars from protection (same logic as Edit/Write path)
+    if echo "$CMD" | grep -qE 'Arbor Spec/23 Tickets/state/' && \
+       ! echo "$CMD" | grep -qE '(contracts/|Arbor Spec/21 Contracts/|tests/T-[0-9]+/[^/]*\.(test\.ts|rs|sh)|\.claude/(hooks|settings\.json|agents|skills))'; then
+        : # state sidecar only — not protected, fall through to exit 0
+    elif echo "$CMD" | grep -qE "$PROTECTED_RE"; then
         # Write verb regex covering 11 of 12 verbs (python open checked separately)
         WRITE_VERB_RE='(>>?[[:space:]]|[[:space:]]-i[[:space:].]|\b(cp|mv) |\btee\b|\btruncate\b|\bdd\b|\bmkdir\b|git[[:space:]]+(checkout[[:space:]]+--|restore\b))'
         if echo "$CMD" | grep -qE "$WRITE_VERB_RE"; then

@@ -1,8 +1,7 @@
 ---
 id: T-011
 phase: 3
-status: queued
-depends_on: [T-010]
+depends_on: [T-013]
 ---
 
 # T-011 — Node visual states and click-to-select interaction
@@ -34,11 +33,11 @@ None beyond T-010 prerequisites (already installed).
 
    This simulates a learner who has completed 5 leaf nodes, is working on one, and has unlocked the next available nodes. The exact node IDs depend on the fixture data — use the array indices, not hardcoded IDs.
 
-3. **Modify `src/graph/arbor-node.module.css`** — add CSS classes for each unlock status. Each class sets the border colour and any additional effects:
-   - `.completed` — border: `var(--color-completed)`, text: `var(--color-text-primary)`
-   - `.unlocked` — border: `var(--color-unlocked)`, text: `var(--color-text-primary)`, box-shadow: `0 0 var(--color-glow-radius) var(--color-glow-color)` (the blue glow effect)
-   - `.inProgress` — border: `var(--color-in-progress)`, text: `var(--color-text-primary)`
-   - `.locked` — border: `var(--color-locked)`, text: `var(--color-text-secondary)` (dimmed)
+3. **Modify `src/graph/arbor-node.module.css`** — add CSS classes for each unlock status. Nodes are circles (T-013 established `border-radius: 50%`). Each class sets the border colour and any additional effects:
+   - `.completed` — border-color: `var(--color-completed)`, label color: `var(--color-text-primary)`
+   - `.unlocked` — border-color: `var(--color-unlocked)`, label color: `var(--color-text-primary)`, box-shadow: `0 0 var(--color-glow-radius) var(--color-glow-color)` (the blue glow effect)
+   - `.inProgress` — border-color: `var(--color-in-progress)`, label color: `var(--color-text-primary)`
+   - `.locked` — border-color: `var(--color-locked)`, label color: `var(--color-text-secondary)` (dimmed)
    - `.selected` — outline: `2px solid var(--color-selected-ring)`, `outline-offset: 2px`
    - Hover effect on all states: background shifts to `var(--color-surface-alt)`, transition using `var(--motion-duration-fast)` and `var(--motion-easing)`
 

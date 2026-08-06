@@ -1,7 +1,6 @@
 ---
 id: T-000
 phase: 0
-status: template   # queued | in_progress | blocked | implemented | rework | done
 depends_on: []
 ---
 
@@ -11,7 +10,7 @@ depends_on: []
 <Two sentences max. What exists after this ticket that didn't before.>
 
 ## System prerequisites
-<List every tool, runtime, or system package the implementer must have installed before beginning. The **user** installs these before handing the ticket to an implementer session — not the implementer. If this section is empty, write "none". The implementer may not install software, modify PATH, or make any persistent change outside the repository; if a prerequisite appears to be missing → STOP, write the question under Blocked, set `status: blocked`, end the session.>
+<List every tool, runtime, or system package the implementer must have installed before beginning. The **user** installs these before handing the ticket to an implementer session — not the implementer. If this section is empty, write "none". The implementer may not install software, modify PATH, or make any persistent change outside the repository; if a prerequisite appears to be missing → STOP, write the question under Blocked in the state sidecar, set `status: blocked`, end the session.>
 
 ## Context links (implementer may read ONLY these)
 - Contract(s): [[21 Contracts/Cx …]]
@@ -35,13 +34,24 @@ depends_on: []
 - Do not add error handling, config, abstractions, or dependencies beyond what Steps specify.
 - Do not "improve" adjacent code encountered along the way.
 - Never invoke `node -e`, `python -c`, or other interpreter one-liners for diagnostics or version checks. bash-guard denies the command class regardless of argument content. To check an installed package version use `pnpm list <pkg>`; to read a version field use the `Read` tool on `package.json` or `node_modules/<pkg>/package.json`.
-- **If anything is ambiguous: STOP. Write the question under Blocked, set `status: blocked`, end the session. Never choose.**
+- **If anything is ambiguous: STOP. Write the question under Blocked in the state sidecar, set `status: blocked`, end the session. Never choose.**
+
+## State sidecar
+Mutable ticket state (status, Blocked, Implementation notes, Verification) lives in **`Arbor Spec/23 Tickets/state/T-000.md`**, NOT in this file. This ticket spec file is architect-only (protected by contract-shield). The sidecar is writable by all roles.
+
+When the architect creates this ticket, also create the sidecar:
+```
+Arbor Spec/23 Tickets/state/T-000.md
+```
+with initial content:
+```markdown
+---
+status: queued
+---
 
 ## Blocked
-<Implementer writes questions here. Architect answers inline with a date, and updates Steps if needed.>
 
 ## Implementation notes
-<Implementer fills on completion: what was created, deviations (should be none), nits noticed but NOT acted on.>
 
 ## Verification
-<Verifier fills: pass/fail, violations if any, date.>
+```

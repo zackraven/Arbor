@@ -16,7 +16,9 @@ Aesthetic and implementation guide for Arbor's frontend UI.
 
 ### Visual identity
 
-Arbor is a dark, focused learning environment. The palette is low-contrast dark with carefully chosen accent colours for node states. The feel is **calm, spatial, and information-dense** — not playful, not enterprise. Think: a physics textbook rendered as a dark-mode graph IDE.
+Arbor is a **light, clean, spatial** learning environment. The default palette is light gray/white with dark outlines and coloured accents for node states. The feel is **calm, precise, and information-dense** — not playful, not enterprise. Think: a textbook's dependency diagram rendered as an interactive graph.
+
+**Light theme** is the default. A dark theme is deferred — the semantic token architecture (`lightTheme` → `tokens.color.*`) ensures it's a variable swap when needed. Do not build a theme toggle now.
 
 ---
 
@@ -48,14 +50,16 @@ src/app.module.css                → App-level layout
 ```css
 /* Pattern in tokens.css */
 :root {
-  --color-base: #0e0e10;
-  --color-surface: #1a1a1f;
-  --color-completed: #4caf50;
+  --color-base: #f5f5f5;
+  --color-surface: #ffffff;
+  --color-completed: #2e7d32;
   /* ... all tokens ... */
 }
 ```
 
 Components consume these via `var(--color-xxx)`. When a component needs a token value in TypeScript (e.g. for React Flow node styling), import from `contracts/tokens.ts`.
+
+**Semantic token architecture:** `contracts/tokens.ts` exports `lightTheme` (concrete values) and `tokens` (semantic references to the theme). Components always use `tokens.*`, never `lightTheme.*` directly. This ensures a future dark theme is a variable swap.
 
 ---
 
@@ -95,7 +99,7 @@ export const useGraphStore = create<GraphState>((set) => ({
 - Node data type is strongly typed (no `any` in `data` prop)
 - ELK layout computed outside React Flow; positions are set on the nodes array before passing to `<ReactFlow>`
 - `fitView` enabled; `minZoom`/`maxZoom` set for usability
-- Edges use `smoothstep` type by default
+- Edges use `straight` type (POLYLINE routing — diagonal lines connecting nodes directly)
 - Pan/zoom: enabled. Node drag: disabled (layout is authoritative)
 
 ---
@@ -110,21 +114,43 @@ interface LayoutEngine {
 }
 ```
 
-The `ElkLayoutEngine` implementation wraps `elkjs` with:
+The `ElkLayoutEngine` implementation wraps `elkjs` with configuration from `tokens.elk`:
 - Direction: `UP` (root at bottom, leaves at top — learner progresses upward)
-- Node spacing: 80px vertical, 40px horizontal
-- Edge routing: `SPLINES`
-- Crossing minimisation: `LAYER_SWEEP`
-- Async execution (ELK runs in a web worker via `elkjs`)
+- **Y-flip:** adapter flips y-coordinates after ELK layout (`y_out = maxY - y_elk`) because ELK's y increases downward regardless of `direction`
+- Node spacing: 30px within-layer, 60px between-layer
+- Edge routing: `POLYLINE` (straight diagonal lines; no curves)
+- Crossing minimisation: `LAYER_SWEEP`, thoroughness 30
+- Node dimensions: `tokens.node.elkWidth` × `tokens.node.elkHeight` (120 × 84px, includes label box)
+- Async execution (ELK runs via `elkjs`)
+
+---
+
+### Node rendering — circles with labels inside
+
+Nodes are **circles**, not rectangles. The module name is rendered **inside** the circle.
+
+```
+     ╭────────╮
+     │ Module │  ← circle (80px diameter), filled white, outlined with status colour
+     │  Name  │     label inside, centered, 10px, up to 3 lines
+     ╰────────╯
+```
+
+- Circle: `tokens.node.diameter` (80px), `border: tokens.node.borderWidth solid <status-colour>`
+- Fill: `var(--color-surface)` (white in light theme)
+- Outline: status colour (green/blue/amber/gray) — see state-to-visual mapping
+- Label: centered inside the circle, `tokens.node.labelFontSize` (10px), up to 3 lines, ellipsis overflow
+- Description (one-liner): appears on hover/click in tooltip or summary panel, NOT on the node
+- ELK receives `elkWidth` × `elkHeight` (80 × 80) matching the circle diameter
 
 ---
 
 ### State-to-visual mapping
 
-| `UnlockStatus` | Border color | Glow | Text | Interaction |
+| `UnlockStatus` | Outline color | Glow | Label | Interaction |
 |---|---|---|---|---|
 | `completed` | `--color-completed` (green) | none | primary | click → select |
-| `unlocked` | `--color-unlocked` (blue) | blue glow, 12px radius | primary | click → select |
+| `unlocked` | `--color-unlocked` (blue) | blue glow, 10px radius | primary | click → select |
 | `in_progress` | `--color-in-progress` (amber) | none | primary | click → select |
 | `locked` | `--color-locked` (gray) | none | secondary | click → select (dimmed) |
 

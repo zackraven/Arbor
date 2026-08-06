@@ -2,30 +2,65 @@
 // Mirror of: Arbor Spec/21 Contracts/C7 Design Tokens.md
 // Do not edit by hand — architect updates this file when the contract changes.
 
+// ── Theme layer ────────────────────────────────────────────────────────
+// Light theme is the default. Dark theme deferred; when added, it will
+// be a second object with the same shape, selected at runtime.
+// Semantic token names are stable across themes.
+
+export const lightTheme = {
+  base:          '#f5f5f5',   // app background — light warm gray
+  surface:       '#ffffff',   // card / panel / node fill
+  surfaceAlt:    '#ebebeb',   // subtle elevation (hover, active panel)
+  border:        '#c0c0c0',   // dividers and outlines
+  textPrimary:   '#1a1a1a',   // primary text — near-black
+  textSecondary: '#555555',   // secondary / muted text
+  textDim:       '#888888',   // disabled or hint text
+
+  // Node state accents — same across themes (brand colours)
+  completed:     '#2e7d32',   // green — slightly darker for light bg
+  unlocked:      '#1565c0',   // blue — deeper for light bg contrast
+  inProgress:    '#e65100',   // amber/orange — darker for light bg
+  locked:        '#9e9e9e',   // muted gray
+
+  glowColor:     'rgba(21, 101, 192, 0.25)',   // unlocked blue at 25%
+  glowRadius:    '10px',
+
+  selectedRing:  '#1565c0',   // matches unlocked blue
+  hoverOverlay:  'rgba(0, 0, 0, 0.04)',        // subtle hover darken on light bg
+
+  edge:          '#a0a0a0',   // edge stroke — medium gray on light bg
+  graphBg:       '#f5f5f5',   // graph canvas — matches base
+  nodeOutline:   '#333333',   // dark node outline for contrast
+
+  progressTrack: '#d0d0d0',
+  progressFill:  '#2e7d32',   // matches completed green
+} as const;
+
+export type Theme = typeof lightTheme;
+
 export const tokens = {
+  // ── Semantic colour tokens — values come from the active theme ────
   color: {
-    // ── Base palette ──────────────────────────────────────────────
-    base:       '#0e0e10',   // app background
-    surface:    '#1a1a1f',   // card / panel background
-    surfaceAlt: '#242429',   // subtle elevation (hover, active panel)
-    border:     '#2e2e35',   // dividers and outlines
-    textPrimary:   '#e8e6e3',   // primary text
-    textSecondary: '#9a9a9a',   // secondary / muted text
-    textDim:       '#6a6a6a',   // disabled or hint text
+    base:          lightTheme.base,
+    surface:       lightTheme.surface,
+    surfaceAlt:    lightTheme.surfaceAlt,
+    border:        lightTheme.border,
+    textPrimary:   lightTheme.textPrimary,
+    textSecondary: lightTheme.textSecondary,
+    textDim:       lightTheme.textDim,
 
-    // ── Node states (unlock status → visual) ─────────────────────
-    completed:   '#4caf50',   // green — node completed
-    unlocked:    '#42a5f5',   // blue — unlocked, ready to learn
-    inProgress:  '#ffa726',   // amber — currently being learned
-    locked:      '#555555',   // muted gray — prerequisites not met
+    completed:     lightTheme.completed,
+    unlocked:      lightTheme.unlocked,
+    inProgress:    lightTheme.inProgress,
+    locked:        lightTheme.locked,
 
-    // ── Glow (unlocked node emphasis) ────────────────────────────
-    glowColor:   'rgba(66, 165, 245, 0.35)',   // unlocked blue at 35% opacity
-    glowRadius:  '12px',                        // blur radius
+    glowColor:     lightTheme.glowColor,
+    glowRadius:    lightTheme.glowRadius,
 
-    // ── Interactive ──────────────────────────────────────────────
-    selectedRing:  '#42a5f5',   // selection ring matches unlocked blue
-    hoverOverlay:  'rgba(255, 255, 255, 0.04)', // subtle hover lift
+    selectedRing:  lightTheme.selectedRing,
+    hoverOverlay:  lightTheme.hoverOverlay,
+
+    nodeOutline:   lightTheme.nodeOutline,
   },
 
   spacing: {
@@ -66,26 +101,67 @@ export const tokens = {
     },
   },
 
+  // ── Node dimensions — circular nodes ─────────────────────────────
+  // Nodes are circles with the module name INSIDE the circle.
+  // Text wraps to 2–3 lines; overflow is ellipsis-truncated.
+  // Diameter must be large enough for readable text at small font size.
   node: {
-    width:       180,   // px
-    minHeight:   50,    // px
-    borderRadius: '8px',
-    borderWidth:  '2px',
+    diameter:       80,     // px — circle diameter (fits ~3 lines of 10px text)
+    borderWidth:    '2px',
+    // Label placement: INSIDE the circle, centered
+    labelFontSize:  '10px', // small for circle fit; readable at zoom
+    labelLineHeight: 1.3,   // unitless
+    labelMaxLines:  3,      // max lines before ellipsis
+    // ELK layout dimensions: circle bounding box + inter-node padding.
+    // Nodes are circles so ELK width = ELK height = diameter.
+    elkWidth:       80,     // px — fed to ELK as node width
+    elkHeight:      80,     // px — fed to ELK as node height
   },
 
   graph: {
-    edgeColor:     '#3a3a42',   // default edge stroke
+    edgeColor:     lightTheme.edge,
     edgeWidth:     1.5,         // px
     edgeAnimated:  false,       // no animated dashes by default
-    background:    '#0e0e10',   // matches base
+    background:    lightTheme.graphBg,
     minimap:       false,       // off by default; enable per user pref
   },
 
   progressRing: {
     size:         40,    // px diameter
     strokeWidth:  3,     // px
-    trackColor:   '#2e2e35',
-    fillColor:    '#4caf50',   // matches completed green
+    trackColor:   lightTheme.progressTrack,
+    fillColor:    lightTheme.progressFill,
+  },
+
+  // ── ELK layout configuration ─────────────────────────────────────
+  // Authoritative ELK options — layout-engine.ts reads these directly.
+  // See decisions log: edge-routing-hybrid-2026-08-06,
+  //                    coordinate-transform-2026-08-06.
+  elk: {
+    algorithm:     'layered',
+    direction:     'UP',            // root at bottom, leaves at top
+    // The adapter MUST flip y-coordinates after layout:
+    //   y_reactflow = maxY - y_elk
+    // ELK's y increases downward in its own space. direction: 'UP'
+    // reverses layer ORDER (root is last layer), but y still increases
+    // downward. React Flow's canvas also has y increasing downward,
+    // but fitView + user expectation = "root at bottom, leaves at top"
+    // requires the flip. Without it, 'UP' renders inverted.
+    yFlip:         true,            // adapter must apply y-flip
+    nodeSpacing:   30,              // px — horizontal spacing within a layer
+    layerSpacing:  60,              // px — vertical spacing between layers
+    // ── Edge routing ───────────────────────────────────────────────
+    // Hybrid approach (decision: edge-routing-hybrid-2026-08-06):
+    //   Adjacent-layer edges: POLYLINE (straight diagonal lines)
+    //   Long-span edges (>1 layer): ORTHOGONAL (routed around nodes)
+    // ELK does not natively support per-edge routing. We use POLYLINE
+    // globally and accept that long edges may cross nodes. The layered
+    // algorithm's crossing minimisation mitigates this. SPLINES was
+    // rejected because it adds curves to adjacent-layer edges.
+    edgeRouting:   'POLYLINE',
+    // ── Crossing minimisation ──────────────────────────────────────
+    crossingMinimization: 'LAYER_SWEEP',
+    crossingMinimizationThoroughness: '30',  // higher = better but slower
   },
 } as const;
 

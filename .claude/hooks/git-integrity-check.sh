@@ -11,6 +11,7 @@
 # Protected paths (mirrors contract-shield patterns):
 #   contracts/
 #   Arbor Spec/21 Contracts/
+#   Arbor Spec/23 Tickets/*.md  (but NOT 23 Tickets/state/ — sidecars writable)
 #   tests/T-NNN/*.test.ts|*.rs|*.sh  (acceptance test files; fixtures NOT included)
 #   .claude/hooks/  .claude/settings.json  .claude/agents/  .claude/skills/
 #
@@ -66,8 +67,12 @@ norm() { echo "${1//\\//}"; }
 is_protected_file() {
     local file
     file=$(norm "$1")
+    # Ticket state sidecars are NOT protected (writable by all roles)
+    if echo "$file" | grep -qE '(^|/)Arbor Spec/23 Tickets/state/'; then
+        return 1
+    fi
     echo "$file" | grep -qE \
-        '(^|/)contracts/|(^|/)Arbor Spec/21 Contracts/|(^|/)tests/T-[0-9]+/[^/]+\.(test\.ts|rs|sh)$|(^|/)\.claude/(hooks/|settings\.json$|agents/|skills/)'
+        '(^|/)contracts/|(^|/)Arbor Spec/21 Contracts/|(^|/)Arbor Spec/23 Tickets/|(^|/)tests/T-[0-9]+/[^/]+\.(test\.ts|rs|sh)$|(^|/)\.claude/(hooks/|settings\.json$|agents/|skills/)'
 }
 
 # Collect staged changes (files that will enter the commit)

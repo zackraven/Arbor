@@ -299,6 +299,44 @@ RESULT=$(run_bash_hook 'mkdir -p tests/T-003/fixtures/valid-pack')
 pass "bash: mkdir -p tests/T-003/fixtures/valid-pack → allow (fixture dir, not a test file path)"
 
 echo ""
+echo "── Ticket files: protected paths must be denied ─────────────────────────"
+# Ticket files under Arbor Spec/23 Tickets/ are architect-only.
+# Added 2026-08-06 to close a shield gap where non-architect sessions
+# (including the orchestrator) could edit ticket files unchallenged.
+
+RESULT=$(run_hook "Arbor Spec/23 Tickets/T-010 Graph View Fixture Render.md")
+[[ "$RESULT" == "deny" ]] || fail "Arbor Spec/23 Tickets/T-010... should be denied (ticket file), got: $RESULT"
+pass "Arbor Spec/23 Tickets/T-010... → deny"
+
+RESULT=$(run_hook "Arbor Spec/23 Tickets/_Ticket Template.md")
+[[ "$RESULT" == "deny" ]] || fail "Arbor Spec/23 Tickets/_Ticket Template.md should be denied (ticket file), got: $RESULT"
+pass "Arbor Spec/23 Tickets/_Ticket Template.md → deny"
+
+# Bash: write verb targeting a ticket file must be denied
+RESULT=$(run_bash_hook 'sed -i "s/status: queued/status: done/" "Arbor Spec/23 Tickets/T-011 Node Visual States.md"')
+[[ "$RESULT" == "deny" ]] || fail "bash sed -i on ticket file should be denied, got: $RESULT"
+pass "bash: sed -i on ticket file → deny"
+
+# Architect bypass must still work for tickets
+RESULT=$(run_hook "Arbor Spec/23 Tickets/T-010 Graph View Fixture Render.md" "architect")
+[[ "$RESULT" == "allow" ]] || fail "Ticket edit with ARBOR_ROLE=architect should be allowed, got: $RESULT"
+pass "ARBOR_ROLE=architect: Edit ticket file → allow"
+
+# State sidecar files must be ALLOWED (writable by all roles)
+RESULT=$(run_hook "Arbor Spec/23 Tickets/state/T-010.md")
+[[ "$RESULT" == "allow" ]] || fail "Arbor Spec/23 Tickets/state/T-010.md should be allowed (sidecar), got: $RESULT"
+pass "Arbor Spec/23 Tickets/state/T-010.md → allow (sidecar)"
+
+RESULT=$(run_hook "Arbor Spec/23 Tickets/state/T-011.md")
+[[ "$RESULT" == "allow" ]] || fail "Arbor Spec/23 Tickets/state/T-011.md should be allowed (sidecar), got: $RESULT"
+pass "Arbor Spec/23 Tickets/state/T-011.md → allow (sidecar)"
+
+# Bash: write verb targeting sidecar must be ALLOWED
+RESULT=$(run_bash_hook 'sed -i "s/status: queued/status: implemented/" "Arbor Spec/23 Tickets/state/T-011.md"')
+[[ "$RESULT" == "allow" ]] || fail "bash sed -i on sidecar should be allowed, got: $RESULT"
+pass "bash: sed -i on sidecar → allow"
+
+echo ""
 echo "── .claude/ self-protection: protected paths must be denied ─────────────"
 # contract-shield.sh explicitly lists .claude/hooks/, .claude/settings.json,
 # .claude/agents/, and .claude/skills/ as self-protection targets.
