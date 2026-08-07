@@ -28,9 +28,10 @@ export const lightTheme = {
   selectedRing:  '#1565c0',   // matches unlocked blue
   hoverOverlay:  'rgba(0, 0, 0, 0.04)',        // subtle hover darken on light bg
 
-  edge:          '#a0a0a0',   // edge stroke — medium gray on light bg
+  edge:          '#a0a0a0',   // edge stroke — base colour (opacity applied separately)
   edgeHighlight: '#1565c0',   // edge stroke when connected to selected node
   edgeCompleted: '#2e7d32',   // edge stroke from completed child to parent
+  edgeHalo:      '#f5f5f5',   // edge halo — matches graph background for crossing legibility
   graphBg:       '#f5f5f5',   // graph canvas — matches base
   nodeOutline:   '#333333',   // dark node outline for contrast
 
@@ -66,6 +67,7 @@ export const tokens = {
 
     edgeHighlight: lightTheme.edgeHighlight,
     edgeCompleted: lightTheme.edgeCompleted,
+    edgeHalo:      lightTheme.edgeHalo,
   },
 
   spacing: {
@@ -111,25 +113,32 @@ export const tokens = {
   // Text wraps to 2–3 lines; overflow is ellipsis-truncated.
   // Diameter must be large enough for readable text at small font size.
   node: {
-    diameter:       80,     // px — circle diameter (fits ~3 lines of 10px text)
-    borderWidth:    '2px',
+    diameter:       65,     // px — circle diameter (fits ~3 lines of 9px text)
+    borderWidth:    '1.5px',
     // Label placement: INSIDE the circle, centered
-    labelFontSize:  '10px', // small for circle fit; readable at zoom
-    labelLineHeight: 1.3,   // unitless
+    labelFontSize:  '9px',  // readable inside circle
+    labelLineHeight: 1.2,   // unitless — tight for circles
     labelMaxLines:  3,      // max lines before ellipsis
     // ELK layout dimensions: circle bounding box + inter-node padding.
     // Nodes are circles so ELK width = ELK height = diameter.
-    elkWidth:       80,     // px — fed to ELK as node width
-    elkHeight:      80,     // px — fed to ELK as node height
+    elkWidth:       65,     // px — fed to ELK as node width
+    elkHeight:      65,     // px — fed to ELK as node height
   },
 
   graph: {
     edgeColor:     lightTheme.edge,
-    edgeWidth:     1.5,         // px
+    // ── Edge width taper — trunk-to-crown metaphor ───────────────
+    edgeWidthBase:   2,        // px — thick at base (root) layer
+    edgeWidthCrown:  0.75,     // px — thin at crown (top) layer
     edgeHighlightWidth: 2.5,   // px — thicker for selected-node edges
-    edgeAnimated:  false,       // no animated dashes by default
+    edgeHaloExtra: 3,          // px — extra width on each side for halo stroke
+    // ── Edge opacity by node state ───────────────────────────────
+    edgeOpacityCompleted: 0.6, // edges between completed nodes — high
+    edgeOpacityDefault:   0.4, // edges at the frontier
+    edgeOpacityLocked:    0.2, // edges into locked territory — dim
+    edgeAnimated:  false,      // no animated dashes by default
     background:    lightTheme.graphBg,
-    minimap:       false,       // off by default; enable per user pref
+    minimap:       false,      // off by default; enable per user pref
   },
 
   progressRing: {
@@ -154,8 +163,8 @@ export const tokens = {
     // but fitView + user expectation = "root at bottom, leaves at top"
     // requires the flip. Without it, 'UP' renders inverted.
     yFlip:         true,            // adapter must apply y-flip
-    nodeSpacing:   30,              // px — horizontal spacing within a layer
-    layerSpacing:  60,              // px — vertical spacing between layers
+    nodeSpacing:   10,              // px — very tight horizontal packing
+    layerSpacing:  100,             // px — generous vertical spacing for clear layer separation
     // ── Edge routing ───────────────────────────────────────────────
     // Hybrid approach (decision: edge-routing-hybrid-2026-08-06):
     //   Adjacent-layer edges: POLYLINE (straight diagonal lines)
@@ -167,7 +176,11 @@ export const tokens = {
     edgeRouting:   'POLYLINE',
     // ── Crossing minimisation ──────────────────────────────────────
     crossingMinimization: 'LAYER_SWEEP',
-    crossingMinimizationThoroughness: '30',  // higher = better but slower
+    crossingMinimizationThoroughness: '100', // high = fewest crossings
+    nodePlacement: 'NETWORK_SIMPLEX',        // minimises edge length → compact, centred
+    compaction:    'EDGE_LENGTH',            // post-compaction squeezes horizontal spread
+    separateConnectedComponents: false,      // lay out as single graph, not separate clusters
+    highDegreeNodeTreatment:     true,       // centres high-connectivity nodes (e.g. Newton's Laws)
   },
 } as const;
 

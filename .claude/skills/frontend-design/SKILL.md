@@ -99,7 +99,7 @@ export const useGraphStore = create<GraphState>((set) => ({
 - Node data type is strongly typed (no `any` in `data` prop)
 - ELK layout computed outside React Flow; positions are set on the nodes array before passing to `<ReactFlow>`
 - `fitView` enabled; `minZoom`/`maxZoom` set for usability
-- Edges use `straight` type (POLYLINE routing — diagonal lines connecting nodes directly)
+- Edges use `default` (bezier) type — subtle curves that differentiate overlapping paths
 - Pan/zoom: enabled. Node drag: disabled (layout is authoritative)
 
 ---
@@ -117,10 +117,12 @@ interface LayoutEngine {
 The `ElkLayoutEngine` implementation wraps `elkjs` with configuration from `tokens.elk`:
 - Direction: `UP` (root at bottom, leaves at top — learner progresses upward)
 - **Y-flip:** adapter flips y-coordinates after ELK layout (`y_out = maxY - y_elk`) because ELK's y increases downward regardless of `direction`
-- Node spacing: 30px within-layer, 60px between-layer
-- Edge routing: `POLYLINE` (straight diagonal lines; no curves)
-- Crossing minimisation: `LAYER_SWEEP`, thoroughness 30
-- Node dimensions: `tokens.node.elkWidth` × `tokens.node.elkHeight` (120 × 84px, includes label box)
+- Node spacing: 10px within-layer, 100px between-layer
+- Edge routing: `POLYLINE` with React Flow `default` (bezier) rendering
+- Crossing minimisation: `LAYER_SWEEP`, thoroughness 100
+- Node placement: `NETWORK_SIMPLEX` (minimises edge length → compact, centred)
+- Post-compaction: `EDGE_LENGTH`, `separateConnectedComponents: false`, `highDegreeNodeTreatment: true`
+- Node dimensions: `tokens.node.elkWidth` × `tokens.node.elkHeight` (65 × 65px, circle bounding box)
 - Async execution (ELK runs via `elkjs`)
 
 ---
@@ -136,12 +138,12 @@ Nodes are **circles**, not rectangles. The module name is rendered **inside** th
      ╰────────╯
 ```
 
-- Circle: `tokens.node.diameter` (80px), `border: tokens.node.borderWidth solid <status-colour>`
+- Circle: `tokens.node.diameter` (65px), `border: tokens.node.borderWidth solid <status-colour>`
 - Fill: `var(--color-surface)` (white in light theme)
 - Outline: status colour (green/blue/amber/gray) — see state-to-visual mapping
-- Label: centered inside the circle, `tokens.node.labelFontSize` (10px), up to 3 lines, ellipsis overflow
+- Label: centered inside the circle, `tokens.node.labelFontSize` (9px), up to 3 lines, ellipsis overflow
 - Description (one-liner): appears on hover/click in tooltip or summary panel, NOT on the node
-- ELK receives `elkWidth` × `elkHeight` (80 × 80) matching the circle diameter
+- ELK receives `elkWidth` × `elkHeight` (65 × 65) matching the circle diameter
 
 ---
 

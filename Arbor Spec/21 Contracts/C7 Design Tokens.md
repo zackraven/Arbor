@@ -55,9 +55,10 @@ export const lightTheme = {
   selectedRing:  '#1565c0',   // matches unlocked blue
   hoverOverlay:  'rgba(0, 0, 0, 0.04)',        // subtle hover darken on light bg
 
-  edge:          '#a0a0a0',   // edge stroke — medium gray on light bg
+  edge:          '#a0a0a0',   // edge stroke — base colour (opacity applied separately)
   edgeHighlight: '#1565c0',   // edge stroke when connected to selected node
   edgeCompleted: '#2e7d32',   // edge stroke from completed child to parent
+  edgeHalo:      '#f5f5f5',   // edge halo — matches graph background for crossing legibility
   graphBg:       '#f5f5f5',   // graph canvas — matches base
   nodeOutline:   '#333333',   // dark node outline for contrast
 
@@ -93,6 +94,7 @@ export const tokens = {
 
     edgeHighlight: lightTheme.edgeHighlight,
     edgeCompleted: lightTheme.edgeCompleted,
+    edgeHalo:      lightTheme.edgeHalo,
   },
 
   spacing: {
@@ -138,22 +140,29 @@ export const tokens = {
   // Text wraps to 2–3 lines; overflow is ellipsis-truncated.
   // Diameter must be large enough for readable text at small font size.
   node: {
-    diameter:       80,     // px — circle diameter (fits ~3 lines of 10px text)
-    borderWidth:    '2px',
+    diameter:       65,     // px — circle diameter (fits ~3 lines of 9px text)
+    borderWidth:    '1.5px',
     // Label placement: INSIDE the circle, centered
-    labelFontSize:  '10px', // small for circle fit; readable at zoom
-    labelLineHeight: 1.3,   // unitless
+    labelFontSize:  '9px',  // readable inside circle
+    labelLineHeight: 1.2,   // unitless — tight for circles
     labelMaxLines:  3,      // max lines before ellipsis
     // ELK layout dimensions: circle bounding box + inter-node padding.
     // Nodes are circles so ELK width = ELK height = diameter.
-    elkWidth:       80,     // px — fed to ELK as node width
-    elkHeight:      80,     // px — fed to ELK as node height
+    elkWidth:       65,     // px — fed to ELK as node width
+    elkHeight:      65,     // px — fed to ELK as node height
   },
 
   graph: {
     edgeColor:     lightTheme.edge,
-    edgeWidth:     1.5,         // px
+    // ── Edge width taper — trunk-to-crown metaphor ───────────────
+    edgeWidthBase:   2,        // px — thick at base (root) layer
+    edgeWidthCrown:  0.75,     // px — thin at crown (top) layer
     edgeHighlightWidth: 2.5,   // px — thicker for selected-node edges
+    edgeHaloExtra: 3,          // px — extra width on each side for halo stroke
+    // ── Edge opacity by node state ───────────────────────────────
+    edgeOpacityCompleted: 0.6, // edges between completed nodes — high
+    edgeOpacityDefault:   0.4, // edges at the frontier
+    edgeOpacityLocked:    0.2, // edges into locked territory — dim
     edgeAnimated:  false,       // no animated dashes by default
     background:    lightTheme.graphBg,
     minimap:       false,       // off by default; enable per user pref
@@ -181,20 +190,21 @@ export const tokens = {
     // but fitView + user expectation = "root at bottom, leaves at top"
     // requires the flip. Without it, 'UP' renders inverted.
     yFlip:         true,            // adapter must apply y-flip
-    nodeSpacing:   30,              // px — horizontal spacing within a layer
-    layerSpacing:  60,              // px — vertical spacing between layers
+    nodeSpacing:   10,              // px — very tight horizontal packing
+    layerSpacing:  100,             // px — generous vertical spacing for clear layer separation
     // ── Edge routing ───────────────────────────────────────────────
-    // Hybrid approach (decision: edge-routing-hybrid-2026-08-06):
-    //   Adjacent-layer edges: POLYLINE (straight diagonal lines)
-    //   Long-span edges (>1 layer): ORTHOGONAL (routed around nodes)
-    // ELK does not natively support per-edge routing. We use POLYLINE
-    // globally and accept that long edges may cross nodes. The layered
-    // algorithm's crossing minimisation mitigates this. SPLINES was
-    // rejected because it adds curves to adjacent-layer edges.
+    // POLYLINE routing with React Flow bezier rendering. ELK computes
+    // node positions; React Flow draws bezier curves between them.
+    // The subtle curves help differentiate overlapping edge paths.
     edgeRouting:   'POLYLINE',
     // ── Crossing minimisation ──────────────────────────────────────
     crossingMinimization: 'LAYER_SWEEP',
-    crossingMinimizationThoroughness: '30',  // higher = better but slower
+    crossingMinimizationThoroughness: '100', // high = fewest crossings
+    // ── Layout quality ───────────────────────────────────────────
+    nodePlacement: 'NETWORK_SIMPLEX',        // minimises edge length → compact, centred
+    compaction:    'EDGE_LENGTH',            // post-compaction squeezes horizontal spread
+    separateConnectedComponents: false,      // lay out as single graph, not separate clusters
+    highDegreeNodeTreatment:     true,       // centres high-connectivity nodes
   },
 } as const;
 
@@ -210,20 +220,26 @@ export type Tokens = typeof tokens;
 | `in_progress` | `surface` | `inProgress` (#e65100) | none | `textPrimary` |
 | `locked` | `surface` | `locked` (#9e9e9e) | none | `textSecondary` |
 
-## Edge highlighting
+## Edge rendering
 
-Edges respond to two conditions: **selection** and **completion**.
+Edges are rendered as custom components (`ArborEdge`) with four visual behaviours:
+
+**1. Width taper (trunk-to-crown).** Edge width interpolates from `edgeWidthBase` (2px) at the root layer to `edgeWidthCrown` (0.75px) at the top layer, based on the average layer fraction of the source and target nodes. This reinforces the trunk-to-treetop metaphor.
+
+**2. No arrowheads.** Direction is carried by the vertical axis. No marker-end or marker-start on any edge.
+
+**3. Halo for crossing legibility.** Each edge is rendered twice: a wider stroke in `edgeHalo` (the graph background colour) at `edgeWidth + edgeHaloExtra * 2`, followed by the coloured stroke on top. Crossings read as over/under instead of collapsing. The halo colour comes from the theme layer (it tracks the graph background).
+
+**4. Opacity hierarchy by node state.** Edges leading into locked territory render at `edgeOpacityLocked` (0.2); edges between completed nodes render at `edgeOpacityCompleted` (0.6); edges at the frontier render at `edgeOpacityDefault` (0.4). The eye finds the live frontier unaided. Selection-highlighted edges render at full opacity.
 
 **Selection highlighting.** When a node is selected, all edges directly connecting it to its parents and children are highlighted:
-- Stroke colour: `edgeHighlight` (#1565c0 — matches unlocked blue)
-- Stroke width: `graph.edgeHighlightWidth` (2.5px — thicker than default 1.5px)
-- Non-connected edges remain at default (`edge` colour, `graph.edgeWidth`)
+- Stroke colour: `edgeHighlight` (#1565c0)
+- Stroke width: `edgeHighlightWidth` (2.5px — overrides taper)
+- Opacity: 1.0 (overrides state hierarchy)
 
-**Completion colouring.** When a node has status `completed`, all edges FROM its children TO it are coloured:
-- Stroke colour: `edgeCompleted` (#2e7d32 — matches completed green)
-- Stroke width: default (`graph.edgeWidth`)
-- This visually shows "these prerequisites are done and feed into this completed node"
-- If a completed-edge is also selected-highlighted, selection takes priority (highlight colour + highlight width)
+**Completion colouring.** When a node has status `completed`, edges FROM its children TO it are coloured:
+- Stroke colour: `edgeCompleted` (#2e7d32)
+- Selection highlighting takes priority over completion colouring when both apply
 
 ## Node rendering
 
@@ -264,3 +280,5 @@ The token-lint test (`tests/T-009/token-lint.test.ts`) scans all `.ts`, `.tsx`, 
 | 2026-08-06 | Initial token set for Phase 3       | [[12 Open Questions & Decisions Log#phase3-design-tokens-2026-08-06]] |
 | 2026-08-06 | Semantic token restructure: theme layer, light default, circular nodes, label-below, ELK config, y-flip | [[12 Open Questions & Decisions Log#semantic-token-restructure-2026-08-06]], [[12 Open Questions & Decisions Log#edge-routing-hybrid-2026-08-06]], [[12 Open Questions & Decisions Log#coordinate-transform-2026-08-06]] |
 | 2026-08-07 | Edge highlighting: selection + completion colouring tokens, edge highlighting spec section | [[12 Open Questions & Decisions Log#edge-highlighting-2026-08-07]] |
+| 2026-08-07 | Layout iteration: 65px nodes, 9px text, 1.5px border, bezier edges, NETWORK_SIMPLEX, tighter spacing, high-degree treatment | (aesthetic iteration, no contract change) |
+| 2026-08-07 | Edge craft: width taper, halo, opacity hierarchy, no arrowheads, custom ArborEdge component | (aesthetic iteration) |

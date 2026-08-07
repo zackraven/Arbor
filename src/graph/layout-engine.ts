@@ -42,6 +42,10 @@ export class ElkLayoutEngine implements LayoutEngine {
         'elk.edgeRouting': tokens.elk.edgeRouting,
         'elk.layered.crossingMinimization.strategy': tokens.elk.crossingMinimization,
         'elk.layered.crossingMinimization.thoroughness': tokens.elk.crossingMinimizationThoroughness,
+        'elk.layered.nodePlacement.strategy': tokens.elk.nodePlacement,
+        'elk.layered.compaction.postCompaction.strategy': tokens.elk.compaction,
+        'elk.separateConnectedComponents': String(tokens.elk.separateConnectedComponents),
+        'elk.layered.highDegreeNodes.treatment': String(tokens.elk.highDegreeNodeTreatment),
       },
       children: nodes.map((n) => ({
         id: n.id,

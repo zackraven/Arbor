@@ -57,8 +57,10 @@
 }
 
 .handle {
-  background: var(--color-locked);
-  width: 6px;
-  height: 6px;
+  background: transparent;
+  width: 1px;
+  height: 1px;
   border: none;
+  min-width: 1px;
+  min-height: 1px;
 }
