@@ -158,6 +158,20 @@ Selection adds a ring (`--color-selected-ring`) and opens the summary panel.
 
 ---
 
+### Edge highlighting
+
+Edges respond to two conditions:
+
+**Selection highlighting:** When a node is selected, all edges directly connecting it to its parents and children are highlighted — stroke changes to `tokens.color.edgeHighlight` (blue, #1565c0) at `tokens.graph.edgeHighlightWidth` (2.5px vs default 1.5px). Non-connected edges remain at default.
+
+**Completion colouring:** When a node has status `completed`, edges from its children (prerequisites) to it are stroked with `tokens.color.edgeCompleted` (green, #2e7d32). This shows "these prerequisites feed into this completed node."
+
+**Precedence:** Selection highlighting wins over completion colouring when both apply (highlight colour + highlight width).
+
+Edge styles are computed in `graph-view.tsx`'s `useEffect` based on `selectedNodeId` and `unlockStatuses`.
+
+---
+
 ### File naming
 
 - Components: `kebab-case.tsx` (e.g. `arbor-node.tsx`, `graph-view.tsx`)

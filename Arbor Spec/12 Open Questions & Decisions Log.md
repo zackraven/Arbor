@@ -570,3 +570,36 @@ Also closed: **shield gap for ticket files.** The orchestrator twice offered to 
 Also fixed: **`.ico` build regression.** `src-tauri/tauri.conf.json` had `"icon": []` since T-001 — the icon file existed at `src-tauri/icons/icon.ico` but was never wired into the bundle config. `pnpm build` failed at MSI bundler stage. Fix: set `"icon": ["icons/icon.ico"]`. This was a T-001 gap, not a regression — the verifier missed it because the MSI bundler may not have been exercised during verification.
 
 Files changed: `Arbor Spec/21 Contracts/C7 Design Tokens.md`, `contracts/tokens.ts`, `.claude/skills/frontend-design/SKILL.md`, `.claude/hooks/contract-shield.sh`, `.claude/hooks/commit-gate.sh`, `.claude/hooks/git-integrity-check.sh`, `.claude/hooks/session-log.sh`, `tests/T-004/contract-shield-smoke.sh`, `Arbor Spec/23 Tickets/_Ticket Template.md`, `Arbor Spec/23 Tickets/state/T-001.md` through `T-013.md` (new sidecar files), `Arbor Spec/23 Tickets/T-011 Node Visual States.md` (dependency updated), `Arbor Spec/23 Tickets/T-013 Design Rework — Circular Nodes, Light Theme, ELK Reconfig.md` (new patch ticket), `src-tauri/tauri.conf.json`, `CLAUDE.md`, `Arbor Spec/12 Open Questions & Decisions Log.md`.
+
+**2026-08-07 — Fixture audit: stranded terminal nodes and missing target designation.** {#fixture-audit-stranded-terminals-2026-08-07}
+
+Human review of the T-011/T-013 observe screenshots identified nodes floating mid-graph with no parents above them (e.g. "Two-Body Central Force Problem" at depth 4 in a depth-9 tree). Investigation found two distinct issues:
+
+**Issue 1 — Fixture defect: thin prerequisites on terminal nodes.** The `two-body-problem` node had only `reduced-mass` as a prerequisite. A physics-correct two-body central force problem requires `angular-momentum` (conservation confines orbit to a plane), `effective-potential` (classifies orbit types), `energy-conservation` (determines bound/unbound), and `differential-equations` (solving the radial ODE). These nodes all exist in the fixture but weren't connected. Similarly, `conservative-forces` was missing `work-energy-theorem` (path-independence of work defines conservative forces), `coordinate-systems` (curl test requires coordinate formalism), and — critically — `energy-conservation` had no edge from `conservative-forces`, even though mechanical energy conservation only holds for conservative systems.
+
+**Fixes applied:**
+- Added 4 edges to `two-body-problem`: `angular-momentum`, `effective-potential`, `energy-conservation`, `differential-equations`. Depth increases from 4 to 8.
+- Added 2 edges to `conservative-forces`: `work-energy-theorem`, `coordinate-systems`.
+- Added 1 edge: `energy-conservation` → `conservative-forces` (energy conservation depends on understanding conservative forces).
+
+This validates the risk flagged at the physics review (#shape-constraint-bloat-2026-08-05): shape-constraint tests can pass on physics nonsense. The fixture passed all shape tests despite `two-body-problem` having a single prerequisite.
+
+**Remaining stranded terminals.** `friction-and-contact` (depth 2, prereq: `newtons-laws`) and `projectile-motion` (depth 2, prereqs: `newtons-laws`, `basic-calculus`) are genuinely simple application topics with correct prerequisite counts. They are orphan terminals — nothing depends on them. In a real pipeline-generated tree, non-target parentless nodes shouldn't exist since every node is created because something above needs it. These are acceptable in a layout fixture.
+
+**Issue 2 — No target node designation in fixture format.** Note 11 specifies "Top bubble renders as the crown of the graph: selected categories expanded." The fixture has `scope.top_bubble` as a descriptive string but no mechanism to designate which nodes are targets (the learning goals that should pin to the top layer). The graph currently relies entirely on topology — terminal nodes float to their minimum-depth layer, which is semantically correct but doesn't enforce the product requirement that designated targets sit at the crown.
+
+**Known layout risk.** Note 11 specifies "Top bubble renders as the crown of the graph" — designated targets must pin to the top layer regardless of prerequisite depth. The current fixture has no target designation mechanism, and the layout engine uses minimum-layer placement, which means a designated target with fewer prerequisites than other paths in the same tree would float mid-graph rather than appearing at the crown. This is the same class of problem that just caused stranded terminals: relying on topology alone to produce the intended visual hierarchy fails when depth doesn't correlate with semantic importance. The assumption "targets will naturally be deepest" is not guaranteed — multi-goal trees and trees where the pipeline adds optional enrichment branches can violate it. Deferred to Phase 4 pipeline design as a known risk; the fixture format will need a `target` field on nodes and the layout adapter will need post-processing to pin targets to the top layer.
+
+Files changed: `tests/fixtures/large-tree.json`, `Arbor Spec/12 Open Questions & Decisions Log.md`.
+
+**2026-08-07 — Edge highlighting: selection + completion colouring.** {#edge-highlighting-2026-08-07}
+
+Two new edge interaction behaviours added to C7:
+
+1. **Selection highlighting.** When a node is selected, all edges directly connecting it to its parent and child nodes are highlighted: stroke changes to `edgeHighlight` (#1565c0 — matches unlocked blue) at `edgeHighlightWidth` (2.5px vs default 1.5px). Non-connected edges remain at default. This provides immediate visual context for "what does this node depend on?" and "what depends on it?"
+
+2. **Completion colouring.** When a node has status `completed`, edges from its children (prerequisites) to it are stroked with `edgeCompleted` (#2e7d32 — matches completed green). This shows "these prerequisites are done and feed into this completed node" — a visual trail of progress through the tree. Selection highlighting takes priority over completion colouring when both apply.
+
+Three new theme-layer tokens added: `edgeHighlight`, `edgeCompleted` (colours), and `graph.edgeHighlightWidth` (dimension). C7 edge highlighting section added with precedence rules.
+
+Files changed: `Arbor Spec/21 Contracts/C7 Design Tokens.md`, `contracts/tokens.ts`, `Arbor Spec/12 Open Questions & Decisions Log.md`.

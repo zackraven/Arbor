@@ -29,6 +29,8 @@ export const lightTheme = {
   hoverOverlay:  'rgba(0, 0, 0, 0.04)',        // subtle hover darken on light bg
 
   edge:          '#a0a0a0',   // edge stroke — medium gray on light bg
+  edgeHighlight: '#1565c0',   // edge stroke when connected to selected node
+  edgeCompleted: '#2e7d32',   // edge stroke from completed child to parent
   graphBg:       '#f5f5f5',   // graph canvas — matches base
   nodeOutline:   '#333333',   // dark node outline for contrast
 
@@ -61,6 +63,9 @@ export const tokens = {
     hoverOverlay:  lightTheme.hoverOverlay,
 
     nodeOutline:   lightTheme.nodeOutline,
+
+    edgeHighlight: lightTheme.edgeHighlight,
+    edgeCompleted: lightTheme.edgeCompleted,
   },
 
   spacing: {
@@ -121,6 +126,7 @@ export const tokens = {
   graph: {
     edgeColor:     lightTheme.edge,
     edgeWidth:     1.5,         // px
+    edgeHighlightWidth: 2.5,   // px — thicker for selected-node edges
     edgeAnimated:  false,       // no animated dashes by default
     background:    lightTheme.graphBg,
     minimap:       false,       // off by default; enable per user pref

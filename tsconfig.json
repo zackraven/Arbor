@@ -16,5 +16,5 @@
     "types": ["node"]
   },
   "include": ["src", "tests", "vite.config.ts", "vitest.config.ts"],
-  "exclude": []
+  "exclude": ["tests/T-014"]
 }

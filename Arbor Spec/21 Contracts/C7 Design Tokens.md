@@ -56,6 +56,8 @@ export const lightTheme = {
   hoverOverlay:  'rgba(0, 0, 0, 0.04)',        // subtle hover darken on light bg
 
   edge:          '#a0a0a0',   // edge stroke — medium gray on light bg
+  edgeHighlight: '#1565c0',   // edge stroke when connected to selected node
+  edgeCompleted: '#2e7d32',   // edge stroke from completed child to parent
   graphBg:       '#f5f5f5',   // graph canvas — matches base
   nodeOutline:   '#333333',   // dark node outline for contrast
 
@@ -88,6 +90,9 @@ export const tokens = {
     hoverOverlay:  lightTheme.hoverOverlay,
 
     nodeOutline:   lightTheme.nodeOutline,
+
+    edgeHighlight: lightTheme.edgeHighlight,
+    edgeCompleted: lightTheme.edgeCompleted,
   },
 
   spacing: {
@@ -148,6 +153,7 @@ export const tokens = {
   graph: {
     edgeColor:     lightTheme.edge,
     edgeWidth:     1.5,         // px
+    edgeHighlightWidth: 2.5,   // px — thicker for selected-node edges
     edgeAnimated:  false,       // no animated dashes by default
     background:    lightTheme.graphBg,
     minimap:       false,       // off by default; enable per user pref
@@ -204,6 +210,21 @@ export type Tokens = typeof tokens;
 | `in_progress` | `surface` | `inProgress` (#e65100) | none | `textPrimary` |
 | `locked` | `surface` | `locked` (#9e9e9e) | none | `textSecondary` |
 
+## Edge highlighting
+
+Edges respond to two conditions: **selection** and **completion**.
+
+**Selection highlighting.** When a node is selected, all edges directly connecting it to its parents and children are highlighted:
+- Stroke colour: `edgeHighlight` (#1565c0 — matches unlocked blue)
+- Stroke width: `graph.edgeHighlightWidth` (2.5px — thicker than default 1.5px)
+- Non-connected edges remain at default (`edge` colour, `graph.edgeWidth`)
+
+**Completion colouring.** When a node has status `completed`, all edges FROM its children TO it are coloured:
+- Stroke colour: `edgeCompleted` (#2e7d32 — matches completed green)
+- Stroke width: default (`graph.edgeWidth`)
+- This visually shows "these prerequisites are done and feed into this completed node"
+- If a completed-edge is also selected-highlighted, selection takes priority (highlight colour + highlight width)
+
 ## Node rendering
 
 Nodes are **circles** with the module name label rendered **inside** the circle. Text is small (10px), wraps to up to 3 lines, and truncates with ellipsis if it overflows.
@@ -242,3 +263,4 @@ The token-lint test (`tests/T-009/token-lint.test.ts`) scans all `.ts`, `.tsx`, 
 |------------|-------------------------------------|--------------------------------------------|
 | 2026-08-06 | Initial token set for Phase 3       | [[12 Open Questions & Decisions Log#phase3-design-tokens-2026-08-06]] |
 | 2026-08-06 | Semantic token restructure: theme layer, light default, circular nodes, label-below, ELK config, y-flip | [[12 Open Questions & Decisions Log#semantic-token-restructure-2026-08-06]], [[12 Open Questions & Decisions Log#edge-routing-hybrid-2026-08-06]], [[12 Open Questions & Decisions Log#coordinate-transform-2026-08-06]] |
+| 2026-08-07 | Edge highlighting: selection + completion colouring tokens, edge highlighting spec section | [[12 Open Questions & Decisions Log#edge-highlighting-2026-08-07]] |
