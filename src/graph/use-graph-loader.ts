@@ -64,9 +64,39 @@ export function useGraphLoader(treeId?: string): { loading: boolean; error: stri
             justification: e.justification,
           }));
 
+          // Build a map from parent id to child ids (edges where parent_id → child_id)
+          const childrenOf = new Map<string, string[]>();
+          for (const edge of edges) {
+            const children = childrenOf.get(edge.parent_id) ?? [];
+            children.push(edge.child_id);
+            childrenOf.set(edge.parent_id, children);
+          }
+
+          const completedSet = new Set<string>();
+          const inProgressSet = new Set<string>();
+
+          // First 5 nodes (by array index): completed
+          for (let i = 0; i < 5 && i < nodes.length; i++) {
+            completedSet.add(nodes[i]!.id);
+          }
+          // 6th node (index 5): in_progress
+          if (nodes.length > 5) {
+            inProgressSet.add(nodes[5]!.id);
+          }
+
           const statuses: Record<string, UnlockStatus> = {};
           for (const node of nodes) {
-            statuses[node.id] = 'locked';
+            if (completedSet.has(node.id)) {
+              statuses[node.id] = 'completed';
+            } else if (inProgressSet.has(node.id)) {
+              statuses[node.id] = 'in_progress';
+            } else {
+              // Unlocked if all children have completed status
+              const children = childrenOf.get(node.id) ?? [];
+              const allChildrenCompleted =
+                children.length > 0 && children.every((cid) => completedSet.has(cid));
+              statuses[node.id] = allChildrenCompleted ? 'unlocked' : 'locked';
+            }
           }
 
           if (!cancelled) {

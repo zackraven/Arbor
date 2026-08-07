@@ -11,12 +11,43 @@
   align-items: center;
   justify-content: center;
   text-align: center;
+  transition: background var(--motion-duration-fast) var(--motion-easing);
+}
+
+.node:hover {
+  background: var(--color-surface-alt);
+}
+
+.completed {
+  border-color: var(--color-completed);
+  color: var(--color-text-primary);
+}
+
+.unlocked {
+  border-color: var(--color-unlocked);
+  color: var(--color-text-primary);
+  box-shadow: 0 0 var(--color-glow-radius) var(--color-glow-color);
+}
+
+.inProgress {
+  border-color: var(--color-in-progress);
+  color: var(--color-text-primary);
+}
+
+.locked {
+  border-color: var(--color-locked);
+  color: var(--color-text-secondary);
+}
+
+.selected {
+  outline: 2px solid var(--color-selected-ring);
+  outline-offset: 2px;
 }
 
 .label {
   font-size: var(--node-label-font-size);
   line-height: var(--node-label-line-height);
-  color: var(--color-text-secondary);
+  color: inherit;
   word-wrap: break-word;
   overflow: hidden;
   display: -webkit-box;

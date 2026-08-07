@@ -1,6 +1,7 @@
 import { Handle, Position } from '@xyflow/react';
 import type { Node, NodeProps } from '@xyflow/react';
 import type { UnlockStatus } from '../../contracts/commands';
+import { useGraphStore } from '../state/graph-store';
 import styles from './arbor-node.module.css';
 
 export interface ArborNodeData extends Record<string, unknown> {
@@ -11,8 +12,24 @@ export interface ArborNodeData extends Record<string, unknown> {
 
 export type ArborNodeType = Node<ArborNodeData, 'arbor'>;
 
+const statusClassMap: Record<UnlockStatus, string> = {
+  completed: styles.completed ?? '',
+  unlocked: styles.unlocked ?? '',
+  in_progress: styles.inProgress ?? '',
+  locked: styles.locked ?? '',
+};
+
 export default function ArborNode(props: NodeProps<ArborNodeType>) {
-  const { label } = props.data;
+  const { label, status } = props.data;
+  const selectedNodeId = useGraphStore((s) => s.selectedNodeId);
+  const isSelected = selectedNodeId === props.id;
+
+  const statusClass = statusClassMap[status] ?? '';
+
+  const className = [styles.node, statusClass, isSelected ? styles.selected : '']
+    .filter(Boolean)
+    .join(' ');
+
   return (
     <>
       <Handle
@@ -20,7 +37,7 @@ export default function ArborNode(props: NodeProps<ArborNodeType>) {
         position={Position.Top}
         className={styles.handle}
       />
-      <div className={styles.node}>
+      <div className={className}>
         <span className={styles.label}>{label}</span>
       </div>
       <Handle

@@ -16,7 +16,7 @@ const layoutEngine = new ElkLayoutEngine();
 
 export default function GraphView({ treeId }: { treeId?: string }) {
   const { loading } = useGraphLoader(treeId);
-  const { nodes: graphNodes, edges: graphEdges, unlockStatuses } = useGraphStore();
+  const { nodes: graphNodes, edges: graphEdges, unlockStatuses, selectedNodeId, selectNode } = useGraphStore();
 
   const [flowNodes, setFlowNodes] = useState<Node<ArborNodeData>[]>([]);
   const [flowEdges, setFlowEdges] = useState<Edge[]>([]);
@@ -88,6 +88,8 @@ export default function GraphView({ treeId }: { treeId?: string }) {
         nodesDraggable={false}
         nodesConnectable={false}
         proOptions={{ hideAttribution: true }}
+        onNodeClick={(_event, node) => selectNode(node.id === selectedNodeId ? null : node.id)}
+        onPaneClick={() => selectNode(null)}
       />
     </div>
   );
