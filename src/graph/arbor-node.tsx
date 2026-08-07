@@ -37,7 +37,7 @@ export default function ArborNode(props: NodeProps<ArborNodeType>) {
         position={Position.Top}
         className={styles.handle}
       />
-      <div className={className}>
+      <div className={className} data-testid="arbor-node">
         <span className={styles.label}>{label}</span>
       </div>
       <Handle

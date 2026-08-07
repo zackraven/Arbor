@@ -7,6 +7,7 @@ import { useGraphStore } from '../state/graph-store';
 import { ElkLayoutEngine } from './layout-engine';
 import ArborNode from './arbor-node';
 import type { ArborNodeData } from './arbor-node';
+import SummaryPanel from './summary-panel';
 import { tokens } from '../../contracts/tokens';
 import styles from './graph-view.module.css';
 
@@ -91,6 +92,7 @@ export default function GraphView({ treeId }: { treeId?: string }) {
         onNodeClick={(_event, node) => selectNode(node.id === selectedNodeId ? null : node.id)}
         onPaneClick={() => selectNode(null)}
       />
+      <SummaryPanel />
     </div>
   );
 }

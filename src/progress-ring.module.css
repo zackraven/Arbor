@@ -1,0 +1,9 @@
+.ring {
+  display: block;
+  flex-shrink: 0;
+}
+
+.text {
+  fill: var(--color-text-primary);
+  font-family: var(--typography-font-family);
+}
