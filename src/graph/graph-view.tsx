@@ -26,8 +26,8 @@ export default function GraphView({ treeId }: { treeId?: string }) {
 
     const layoutNodes = graphNodes.map((n) => ({
       id: n.id,
-      width: tokens.node.width,
-      height: tokens.node.minHeight,
+      width: tokens.node.elkWidth,
+      height: tokens.node.elkHeight,
     }));
 
     const layoutEdges = graphEdges.map((e) => ({
@@ -56,7 +56,7 @@ export default function GraphView({ treeId }: { treeId?: string }) {
           id: String(e.id),
           source: e.parent_id,
           target: e.child_id,
-          type: 'smoothstep',
+          type: 'straight',
           style: { stroke: tokens.graph.edgeColor },
         }));
 

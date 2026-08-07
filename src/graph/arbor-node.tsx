@@ -12,7 +12,7 @@ export interface ArborNodeData extends Record<string, unknown> {
 export type ArborNodeType = Node<ArborNodeData, 'arbor'>;
 
 export default function ArborNode(props: NodeProps<ArborNodeType>) {
-  const { label, oneLiner } = props.data;
+  const { label } = props.data;
   return (
     <>
       <Handle
@@ -21,8 +21,7 @@ export default function ArborNode(props: NodeProps<ArborNodeType>) {
         className={styles.handle}
       />
       <div className={styles.node}>
-        <span className={styles.title}>{label}</span>
-        <span className={styles.oneLiner}>{oneLiner}</span>
+        <span className={styles.label}>{label}</span>
       </div>
       <Handle
         type="source"

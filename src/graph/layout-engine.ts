@@ -1,4 +1,5 @@
 import ELK from 'elkjs/lib/elk.bundled.js';
+import { tokens } from '../../contracts/tokens';
 
 // Types for layout input/output
 export interface LayoutNode {
@@ -34,12 +35,13 @@ export class ElkLayoutEngine implements LayoutEngine {
     const elkGraph = {
       id: 'root',
       layoutOptions: {
-        'elk.algorithm': 'layered',
-        'elk.direction': 'UP',
-        'elk.spacing.nodeNode': '40',
-        'elk.layered.spacing.nodeNodeBetweenLayers': '80',
-        'elk.edgeRouting': 'SPLINES',
-        'elk.layered.crossingMinimization.strategy': 'LAYER_SWEEP',
+        'elk.algorithm': tokens.elk.algorithm,
+        'elk.direction': tokens.elk.direction,
+        'elk.spacing.nodeNode': String(tokens.elk.nodeSpacing),
+        'elk.layered.spacing.nodeNodeBetweenLayers': String(tokens.elk.layerSpacing),
+        'elk.edgeRouting': tokens.elk.edgeRouting,
+        'elk.layered.crossingMinimization.strategy': tokens.elk.crossingMinimization,
+        'elk.layered.crossingMinimization.thoroughness': tokens.elk.crossingMinimizationThoroughness,
       },
       children: nodes.map((n) => ({
         id: n.id,
@@ -55,10 +57,13 @@ export class ElkLayoutEngine implements LayoutEngine {
 
     const result = await this.elk.layout(elkGraph);
 
+    // ELK's y increases downward. With direction: 'UP', layer order is
+    // reversed but y still grows down. Flip y so root is at screen-bottom.
+    const maxY = Math.max(...(result.children ?? []).map(c => (c.y ?? 0) + (c.height ?? 0)));
     const resultNodes = (result.children ?? []).map((child) => ({
       id: child.id,
       x: child.x ?? 0,
-      y: child.y ?? 0,
+      y: tokens.elk.yFlip ? maxY - (child.y ?? 0) - (child.height ?? 0) : (child.y ?? 0),
       width: child.width ?? 0,
       height: child.height ?? 0,
     }));
