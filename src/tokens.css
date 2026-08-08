@@ -16,6 +16,8 @@
   --color-selected-ring: #1565c0;
   --color-hover-overlay: rgba(0, 0, 0, 0.04);
   --color-node-outline: #333333;
+  --color-minimap-mask: rgba(0, 0, 0, 0.08);
+  --color-shadow-light: rgba(0, 0, 0, 0.06);
 
   /* ── Spacing ─────────────────────────────────────────────────────────────── */
   --spacing-unit: 4px;
@@ -97,6 +99,8 @@
   --color-selected-ring: #42a5f5;
   --color-hover-overlay: rgba(255, 255, 255, 0.06);
   --color-node-outline: #e0e0e0;
+  --color-minimap-mask: rgba(0, 0, 0, 0.15);
+  --color-shadow-light: rgba(0, 0, 0, 0.2);
 
   --graph-edge-color: #ffffff;
   --graph-background: #1a1a1e;
@@ -124,6 +128,8 @@
     --color-selected-ring: #42a5f5;
     --color-hover-overlay: rgba(255, 255, 255, 0.06);
     --color-node-outline: #e0e0e0;
+    --color-minimap-mask: rgba(0, 0, 0, 0.15);
+    --color-shadow-light: rgba(0, 0, 0, 0.2);
 
     --graph-edge-color: #ffffff;
     --graph-background: #1a1a1e;

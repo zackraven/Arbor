@@ -23,7 +23,7 @@ arbor/
       vault/               # markdown vault read/write
       unlock/              # live unlock computation
       fsrs/                # scheduling (wraps rs-fsrs or ts-fsrs via sidecar — TODO(architect))
-      orchestrator/        # agent jobs: build, teach, repair (checkpointed)
+      pipeline/            # build pipeline jobs: scoping, decomposition, authoring (checkpointed)
       sympy_sidecar/       # process mgmt + request/response for the python judge
   sidecar/                 # python: sympy judge (thin, stateless)
   contracts/               # machine-readable mirrors of 21 Contracts (JSON Schema, .sql, .d.ts)

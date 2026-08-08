@@ -18,9 +18,9 @@ Defines the visual design language for Arbor's frontend: colours, spacing, motio
 Tokens are structured in two layers:
 
 1. **Semantic tokens** (`tokens.color.*`, `tokens.node.*`, etc.) — named by purpose, not by value. Components reference these. Example: `--surface` means "the background of a card", not "this particular shade of gray".
-2. **Theme layer** (`tokens.theme.*`) — supplies concrete values to semantic tokens. The `light` theme is the default; a future `dark` theme is a variable swap with no component changes.
+2. **Theme layer** (`lightTheme`, `darkTheme`) — supplies concrete values to semantic tokens. Both themes have the same shape (`Theme` type). Dark theme is active via `data-theme="dark"` attribute or system preference.
 
-This separation ensures a theme change is a single-file edit to the theme layer, not a codebase-wide colour hunt.
+This separation ensures a theme change is a CSS custom-property swap, not a codebase-wide colour hunt.
 
 ## Full definition
 
@@ -35,7 +35,7 @@ This separation ensures a theme change is a single-file edit to the theme layer,
 // Semantic token names are stable across themes.
 
 export const lightTheme = {
-  base:          '#f5f5f5',   // app background — light warm gray
+  base:          '#FAFAF9',   // app background — warm off-white
   surface:       '#ffffff',   // card / panel / node fill
   surfaceAlt:    '#ebebeb',   // subtle elevation (hover, active panel)
   border:        '#c0c0c0',   // dividers and outlines
@@ -58,15 +58,53 @@ export const lightTheme = {
   edge:          '#a0a0a0',   // edge stroke — base colour (opacity applied separately)
   edgeHighlight: '#1565c0',   // edge stroke when connected to selected node
   edgeCompleted: '#2e7d32',   // edge stroke from completed child to parent
-  edgeHalo:      '#f5f5f5',   // edge halo — matches graph background for crossing legibility
-  graphBg:       '#f5f5f5',   // graph canvas — matches base
+  edgeHalo:      '#FAFAF9',   // edge halo — matches graph background for crossing legibility
+  graphBg:       '#FAFAF9',   // graph canvas — warm off-white
   nodeOutline:   '#333333',   // dark node outline for contrast
+
+  minimapMask:   'rgba(0, 0, 0, 0.08)',   // minimap overlay — subtle darken
+  shadowLight:   'rgba(0, 0, 0, 0.06)',   // card hover shadow
 
   progressTrack: '#d0d0d0',
   progressFill:  '#2e7d32',   // matches completed green
 } as const;
 
-export type Theme = typeof lightTheme;
+export type Theme = { [K in keyof typeof lightTheme]: string };
+
+export const darkTheme: Theme = {
+  base:          '#1a1a1e',   // app background — near-black warm
+  surface:       '#252529',   // card / panel / node fill
+  surfaceAlt:    '#2e2e33',   // subtle elevation (hover, active panel)
+  border:        '#3a3a40',   // dividers and outlines
+  textPrimary:   '#e8e8e8',   // primary text — near-white
+  textSecondary: '#a0a0a0',   // secondary / muted text
+  textDim:       '#666666',   // disabled or hint text
+
+  // Node state accents — brighter for dark bg
+  completed:     '#4caf50',   // green — brighter for dark bg
+  unlocked:      '#42a5f5',   // blue — brighter for dark bg
+  inProgress:    '#ff9800',   // amber/orange — brighter for dark bg
+  locked:        '#616161',   // muted gray
+
+  glowColor:     'rgba(66, 165, 245, 0.3)',   // unlocked blue at 30%
+  glowRadius:    '10px',
+
+  selectedRing:  '#42a5f5',   // matches unlocked blue
+  hoverOverlay:  'rgba(255, 255, 255, 0.06)',  // subtle hover lighten on dark bg
+
+  edge:          '#ffffff',   // edge stroke — white for visibility on dark bg
+  edgeHighlight: '#42a5f5',   // edge stroke when connected to selected node
+  edgeCompleted: '#4caf50',   // edge stroke from completed child to parent
+  edgeHalo:      '#1a1a1e',   // edge halo — matches dark background
+  graphBg:       '#1a1a1e',   // graph canvas — dark
+  nodeOutline:   '#e0e0e0',   // light node outline for contrast on dark
+
+  minimapMask:   'rgba(0, 0, 0, 0.15)',   // minimap overlay — stronger on dark bg
+  shadowLight:   'rgba(0, 0, 0, 0.2)',    // card hover shadow — deeper on dark bg
+
+  progressTrack: '#3a3a40',
+  progressFill:  '#4caf50',   // matches completed green
+} as const;
 
 export const tokens = {
   // ── Semantic colour tokens — values come from the active theme ────
@@ -95,6 +133,11 @@ export const tokens = {
     edgeHighlight: lightTheme.edgeHighlight,
     edgeCompleted: lightTheme.edgeCompleted,
     edgeHalo:      lightTheme.edgeHalo,
+
+    minimapMask:   lightTheme.minimapMask,
+    shadowLight:   lightTheme.shadowLight,
+
+    focusDimOpacity: 0.12,        // opacity for nodes/edges outside focus set
   },
 
   spacing: {
@@ -111,6 +154,16 @@ export const tokens = {
     durationFast:   '120ms',
     durationNormal: '200ms',
     durationSlow:   '350ms',
+    durationFocus:  '200ms',     // focus dim fade in/out
+    durationHover:  '150ms',     // hover scale transition
+    durationEdgeHighlight: '200ms', // edge highlight fade in
+    // ── Staggered rise on load ───────────────────────────────────
+    riseStagger:    20,          // ms delay per layer
+    riseDuration:   '400ms',     // total animation duration per node
+    riseEasing:     'cubic-bezier(0.0, 0, 0.2, 1)', // decelerate
+    // ── Hover ────────────────────────────────────────────────────
+    hoverScale:     1.04,
+    hoverEasing:    'ease-out',
     easing:         'cubic-bezier(0.4, 0, 0.2, 1)',  // material standard
   },
 
@@ -142,6 +195,7 @@ export const tokens = {
   node: {
     diameter:       65,     // px — circle diameter (fits ~3 lines of 9px text)
     borderWidth:    '1.5px',
+    borderWidthNum: 1.5,    // numeric for SVG stroke calculations
     // Label placement: INSIDE the circle, centered
     labelFontSize:  '9px',  // readable inside circle
     labelLineHeight: 1.2,   // unitless — tight for circles
@@ -150,6 +204,19 @@ export const tokens = {
     // Nodes are circles so ELK width = ELK height = diameter.
     elkWidth:       65,     // px — fed to ELK as node width
     elkHeight:      65,     // px — fed to ELK as node height
+    // ── Progress arc (completed status) ─────────────────────────
+    progressArcWidth: 2.5,  // px — stroke width for completion ring
+    progressArcGap:   3,    // px — gap between node border and progress arc
+    // ── Glow rings (unlocked status) ────────────────────────────
+    glowRingInnerSize:    4,    // px beyond circle radius
+    glowRingOuterSize:    10,   // px beyond circle radius
+    glowRingInnerOpacity: 0.2,
+    glowRingOuterOpacity: 0.08,
+    glowRingWidth:        1.5,  // px — stroke width of glow rings
+    // ── Pulse animation (unlocked status) ───────────────────────
+    pulseDuration:    '3s',
+    pulseMinOpacity:  0.4,
+    pulseMaxOpacity:  0.7,
   },
 
   graph: {
@@ -163,9 +230,14 @@ export const tokens = {
     edgeOpacityCompleted: 0.6, // edges between completed nodes — high
     edgeOpacityDefault:   0.4, // edges at the frontier
     edgeOpacityLocked:    0.2, // edges into locked territory — dim
-    edgeAnimated:  false,       // no animated dashes by default
+    edgeAnimated:  false,      // no animated dashes by default
     background:    lightTheme.graphBg,
-    minimap:       false,       // off by default; enable per user pref
+    // ── Dot grid — grounds the canvas without competing ────────
+    dotGridSpacing: 24,        // px — gap between dots
+    dotGridOpacity: 0.04,      // ~4% — subtle
+    dotGridSize:    1,         // px — dot radius
+    dotGridColor:   '#000000', // black at 4% opacity = very faint
+    minimap:       false,      // off by default; enable per user pref
   },
 
   progressRing: {
@@ -193,18 +265,21 @@ export const tokens = {
     nodeSpacing:   10,              // px — very tight horizontal packing
     layerSpacing:  100,             // px — generous vertical spacing for clear layer separation
     // ── Edge routing ───────────────────────────────────────────────
-    // POLYLINE routing with React Flow bezier rendering. ELK computes
-    // node positions; React Flow draws bezier curves between them.
-    // The subtle curves help differentiate overlapping edge paths.
+    // Hybrid approach (decision: edge-routing-hybrid-2026-08-06):
+    //   Adjacent-layer edges: POLYLINE (straight diagonal lines)
+    //   Long-span edges (>1 layer): ORTHOGONAL (routed around nodes)
+    // ELK does not natively support per-edge routing. We use POLYLINE
+    // globally and accept that long edges may cross nodes. The layered
+    // algorithm's crossing minimisation mitigates this. SPLINES was
+    // rejected because it adds curves to adjacent-layer edges.
     edgeRouting:   'POLYLINE',
     // ── Crossing minimisation ──────────────────────────────────────
     crossingMinimization: 'LAYER_SWEEP',
     crossingMinimizationThoroughness: '100', // high = fewest crossings
-    // ── Layout quality ───────────────────────────────────────────
     nodePlacement: 'NETWORK_SIMPLEX',        // minimises edge length → compact, centred
     compaction:    'EDGE_LENGTH',            // post-compaction squeezes horizontal spread
     separateConnectedComponents: false,      // lay out as single graph, not separate clusters
-    highDegreeNodeTreatment:     true,       // centres high-connectivity nodes
+    highDegreeNodeTreatment:     true,       // centres high-connectivity nodes (e.g. Newton's Laws)
   },
 } as const;
 
@@ -243,11 +318,11 @@ Edges are rendered as custom components (`ArborEdge`) with four visual behaviour
 
 ## Node rendering
 
-Nodes are **circles** with the module name label rendered **inside** the circle. Text is small (10px), wraps to up to 3 lines, and truncates with ellipsis if it overflows.
+Nodes are **circles** with the module name label rendered **inside** the circle. Text is small (9px), wraps to up to 3 lines, and truncates with ellipsis if it overflows.
 
-- **Circle:** `node.diameter` (80px), filled with `surface`, outlined with the status colour at `node.borderWidth`.
-- **Label:** centered inside the circle, `node.labelFontSize` (10px), up to `node.labelMaxLines` (3) lines. CSS `word-wrap: break-word; text-align: center; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical`.
-- **ELK dimensions:** `node.elkWidth` × `node.elkHeight` (80 × 80px) — matches the circle diameter. Inter-node spacing in ELK options provides visual clearance.
+- **Circle:** `node.diameter` (65px), filled with `surface`, outlined with the status colour at `node.borderWidth` (1.5px).
+- **Label:** centered inside the circle, `node.labelFontSize` (9px), up to `node.labelMaxLines` (3) lines. CSS `word-wrap: break-word; text-align: center; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical`.
+- **ELK dimensions:** `node.elkWidth` × `node.elkHeight` (65 × 65px) — matches the circle diameter. Inter-node spacing in ELK options provides visual clearance.
 - **Description** (one-liner) appears on hover/click in a tooltip or summary panel, NOT on the node itself.
 
 ## ELK layout configuration
@@ -257,8 +332,8 @@ The `tokens.elk` section is authoritative. `layout-engine.ts` reads these values
 Key decisions:
 - **Direction: UP** with **y-flip in the adapter** — see [[12 Open Questions & Decisions Log#coordinate-transform-2026-08-06]].
 - **Edge routing: POLYLINE** (hybrid intent) — see [[12 Open Questions & Decisions Log#edge-routing-hybrid-2026-08-06]].
-- **Crossing minimisation: LAYER_SWEEP** with thoroughness 30.
-- **Spacing:** 30px within-layer, 60px between-layer (tighter than v1 for "taller than wide" request).
+- **Crossing minimisation: LAYER_SWEEP** with thoroughness 100.
+- **Spacing:** 10px within-layer, 100px between-layer.
 
 ## Token usage invariant
 
@@ -282,3 +357,4 @@ The token-lint test (`tests/T-009/token-lint.test.ts`) scans all `.ts`, `.tsx`, 
 | 2026-08-07 | Edge highlighting: selection + completion colouring tokens, edge highlighting spec section | [[12 Open Questions & Decisions Log#edge-highlighting-2026-08-07]] |
 | 2026-08-07 | Layout iteration: 65px nodes, 9px text, 1.5px border, bezier edges, NETWORK_SIMPLEX, tighter spacing, high-degree treatment | (aesthetic iteration, no contract change) |
 | 2026-08-07 | Edge craft: width taper, halo, opacity hierarchy, no arrowheads, custom ArborEdge component | (aesthetic iteration) |
+| 2026-08-08 | Full note ↔ mirror sync: darkTheme, focusDimOpacity, motion tokens (durationFocus/Hover/EdgeHighlight, rise*, hover*), node SVG tokens (borderWidthNum, progressArc*, glowRing*, pulse*), dotGrid tokens, minimapMask, shadowLight; fixed stale prose (65px/9px/10+100 spacing/thoroughness 100) | [[12 Open Questions & Decisions Log#phase3-out-of-band-2026-08-08]] |

@@ -15,7 +15,7 @@ tags: [spec, decisions, log]
 - [ ] Haiku vs Sonnet for runtime answer classification — needs empirical testing on real segment transcripts.
 - [ ] Baseline manifests — source A-level spec topic lists (public) and define the Year-1-BSc manifest. Format TBD.
 - [x] Diagnostic bank size — closed for v1: minimum bank of ≥10; runtime draws exactly 10 per attempt. See C2 invariant and [[#C2-diagnostic-bank-2026-07-23]].
-- [ ] Concept-registry embedding model + similarity threshold for dedup.
+- [x] Concept-registry embedding model + similarity threshold for dedup — closed for v1: model-call dedup pass instead. See [[#concept-registry-no-embeddings-2026-08-08]].
 - [x] ELK vs dagre — closed: ELK with LayoutEngine adapter interface. See [[#phase3-elk-and-zustand-2026-08-06]].
 - [ ] Maths input UX — raw LaTeX with preview vs structured editor.
 - [ ] Adaptive placement test (v1.5) — design the difficulty-bisection probe when revisiting.
@@ -603,3 +603,131 @@ Two new edge interaction behaviours added to C7:
 Three new theme-layer tokens added: `edgeHighlight`, `edgeCompleted` (colours), and `graph.edgeHighlightWidth` (dimension). C7 edge highlighting section added with precedence rules.
 
 Files changed: `Arbor Spec/21 Contracts/C7 Design Tokens.md`, `contracts/tokens.ts`, `Arbor Spec/12 Open Questions & Decisions Log.md`.
+
+**2026-08-08 — Process finding: Phase 3 out-of-band commits.** {#phase3-out-of-band-2026-08-08}
+
+Two commits (305199c, 3948f40) shipped ~960 lines of new/changed code outside the ticket system after Phase 3 tickets were completed. Audit of what was added:
+
+**Commit 305199c — "phase 3: focus mode, SVG node treatment, ground atmosphere, motion, viewport bounds, zoom-to-target"**
+- Focus mode: transitive ancestor/descendant dimming on node selection (new `focusSet` in graph-store, dim opacity applied to out-of-focus nodes/edges)
+- SVG node treatment: arbor-node rewritten as SVG with progress arcs (completed), glow rings (unlocked), pulse animation (unlocked), inline SVG circle rendering
+- Ground atmosphere: dot grid background on graph canvas
+- Motion tokens: staggered rise animation on load (per-layer delay), hover scale, focus/edge-highlight transition durations
+- Viewport bounds: translateExtent computed from layout bounding box + padding
+- Zoom-to-target: on load, camera animates to first in_progress or lowest-layer unlocked node
+- New tokens in contracts/tokens.ts: focusDimOpacity, motion.durationFocus/durationHover/durationEdgeHighlight/riseStagger/riseDuration/riseEasing/hoverScale/hoverEasing, node.borderWidthNum/progressArcWidth/progressArcGap/glowRing*/pulse*, graph.dotGrid*
+- New CSS custom properties in tokens.css: pulse/motion/focus-related
+- Bug fix in src-tauri/src/db/mod.rs (unrelated Rust backend change)
+
+**Commit 3948f40 — "dark mode, theme toggle, keyboard nav panning, edge routing polish"**
+- Dark mode: full `darkTheme` object added to contracts/tokens.ts, dark theme CSS custom properties added to tokens.css (`:root[data-theme="dark"]` and `@media (prefers-color-scheme: dark)`)
+- Theme toggle UI: three-state cycle (light/dark/system) with localStorage persistence, transition animation class. **This directly contradicts the 2026-08-06 decision "Dark theme deferred — no toggle UI"** (see [[#semantic-token-restructure-2026-08-06]])
+- Keyboard navigation: arrow keys navigate graph (up=parent, down=child, left/right=siblings), Escape deselects. New navigateUp/Down/Left/Right actions in graph-store
+- Navigation panning: camera follows keyboard navigation (NavigationPanner component)
+- Critical path: shortest root-to-selected path computed and highlighted (new `criticalPath` in graph-store, `onCriticalPath` edge data)
+- Edge routing polish: arbor-edge component changes
+- Theme transition CSS class for smooth colour crossfade
+
+**Contract modifications (not through architect session):**
+- `contracts/tokens.ts` modified in both commits, adding ~70 lines of new token values and the entire `darkTheme` object. C7 contract note was NOT updated to match — the contract mirror has diverged from the contract note.
+
+**Test regressions introduced:**
+- `tests/T-009/token-lint.test.ts` currently fails: two hardcoded colour values introduced — `maskColor="rgba(0, 0, 0, 0.08)"` in graph-view.tsx:363 (MiniMap) and `box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06)` in tree-list.module.css:44.
+
+**Process violations identified:**
+1. Contract mirror (`contracts/tokens.ts`) modified without updating the contract note (`21 Contracts/C7 Design Tokens.md`) — the two are now out of sync.
+2. Dark mode toggle shipped contradicting a recorded decision without a decisions-log entry reversing it.
+3. Features added to files listed as out-of-scope in completed tickets (e.g. `src/state/graph-store.ts` was out-of-scope for T-012, but modified here with focus/navigation/criticalPath).
+4. No tickets, no acceptance criteria, no verification for ~960 lines of new code.
+5. Token lint test now fails, meaning the "green test suite" invariant was broken.
+
+**Decision: dark theme toggle stands.** The toggle was desired by the user and the semantic token architecture was designed to support it (see #semantic-token-restructure-2026-08-06 point 1). The 2026-08-06 "deferred" decision is hereby reversed. Default theme is `dark` (set in `getInitialTheme()` fallback). The contract note C7 must be updated to document the dark theme values and the toggle mechanism.
+
+**Remediation needed:**
+- Fix the two hardcoded colours to restore token-lint green.
+- Update C7 contract note to match the current contracts/tokens.ts mirror (dark theme, all new tokens).
+- T-014 (edge highlighting) remains queued — it should fix the edge token references as part of its normal implementation.
+
+**T-011 architect override — process note.** The T-011 verifier correctly failed the ticket because the implementer didn't run `pnpm observe` (an acceptance criterion). The architect ran it, confirmed the screenshot showed correct output, and overrode the fail. This was pragmatic but sets a precedent for architect rescue of implementer omissions. Future policy: rework is preferred over override when the gap is an implementer step, not a spec ambiguity. Override is reserved for cases where the verifier's own process was at fault (e.g., the verifier misread the AC).
+
+Files changed: `Arbor Spec/12 Open Questions & Decisions Log.md`.
+
+**2026-08-08 — Pipeline module rename and model-call architecture.** {#pipeline-rename-model-call-2026-08-08}
+
+**Rename: `src-tauri/src/orchestrator/` → `src-tauri/src/pipeline/`.** The name "orchestrator" collides with the Arbor dev-loop orchestrator role (the agent that dispatches implementer/verifier sessions). The Rust module handles build pipeline jobs, not session orchestration. Renamed to `pipeline/` for clarity. Architecture note 20 updated.
+
+**Model-call architecture: CLI subprocess, not API SDK.** The Claude Agent SDK requires `ANTHROPIC_API_KEY` (paid API). The v1 "no API spend" premise requires using the Claude Code subscription instead. The `claude` CLI in non-bare mode authenticates via the user's subscription login (OAuth), which is the free path.
+
+Architecture decision: the Rust backend spawns `claude -p` as a subprocess for all model calls. This gives:
+- Subscription auth (no API key, no spend)
+- `--output-format json` for structured responses
+- `--json-schema` for schema-constrained output
+- `--output-format stream-json` for streaming
+- `--continue`/`--resume` for multi-turn sessions
+
+Consequence: Claude Code CLI is a system prerequisite for Arbor. The user must be logged in. Usage windows apply — resumability remains mandatory per note 02. API key auth is not supported in v1; this is a personal tool, not a third-party product.
+
+Spike ticket T-015 validates this path end-to-end before any pipeline tickets are written.
+
+Files changed: `Arbor Spec/12 Open Questions & Decisions Log.md`, `Arbor Spec/20 Architecture.md`.
+
+---
+
+### concept-registry-no-embeddings-2026-08-08
+
+**Decision:** v1 concept registry uses a model-call dedup pass, not embeddings.
+
+The concept registry deduplication step runs as a post-decomposition pass using the existing `claude -p` model-call path. The prompt includes the full registry of known concepts plus the new candidates from decomposition. The model identifies duplicates semantically — no embedding model, no similarity threshold, no vector DB.
+
+Rationale:
+- Eliminates a dependency (no embedding model selection or hosting)
+- Better semantic judgment than cosine similarity for concept dedup (e.g. "Newton's Second Law" vs "F=ma" vs "force and acceleration")
+- Works within the existing model-call infrastructure (T-015)
+- Prompt-based approach scales until the registry outgrows a single context window; revisit embeddings only if the trunk outgrows a prompt
+
+Closes open question: "Concept-registry embedding model + similarity threshold for dedup."
+
+Files changed: `Arbor Spec/12 Open Questions & Decisions Log.md`.
+
+---
+
+### claude-code-product-dependency-2026-08-08
+
+**Decision:** Arbor v1 explicitly depends on Claude Code CLI being installed and authenticated.
+
+This is acceptable for a solo-developer tool. The v1 architecture (model calls via `claude -p` subprocess) requires:
+- Claude Code installed and on PATH
+- User logged in with an active subscription
+- Usage windows apply; pipeline must be resumable
+
+This is NOT acceptable for any commercial distribution path. If Arbor ever ships to other users, the model-call layer must be replaced with API-key auth or a hosted backend. T-015 (model call spike) logs the exact runtime constraints.
+
+Files changed: `Arbor Spec/12 Open Questions & Decisions Log.md`.
+
+---
+
+### streaming-deferred-phase5-2026-08-08
+
+**Decision:** Streaming model output is deferred entirely to Phase 5.
+
+Phase 4 pipeline stages use synchronous `claude -p --output-format json` calls. T-015 records the `stream-json` event shape for future reference but no streaming infrastructure is built in Phase 4. Rationale: synchronous calls are simpler to debug, checkpoint, and resume; streaming adds complexity that isn't needed until the UX demands real-time progress feedback.
+
+Files changed: `Arbor Spec/12 Open Questions & Decisions Log.md`.
+
+---
+
+### eval-harness-rubrics-not-golden-files-2026-08-08
+
+**Decision:** Pipeline eval harness uses assertion-based rubrics, not golden-file comparison.
+
+Rubric format: each rubric is a JSON file containing typed assertions (must_contain, must_not_contain, node_count range, depth_range, ordering constraints, max_fan_in, outcome_count, justification_present, dag). The eval engine evaluates a decomposition against a rubric and reports violations.
+
+Rationale:
+- Golden files are brittle — any valid alternative decomposition fails the diff
+- Rubrics express what matters (concept presence, structure bounds, ordering) without specifying the exact decomposition
+- The architect (domain expert) authors rubrics; the implementer builds the engine
+- Rubrics are composable — can test different aspects independently
+
+T-016 builds the engine. Rubric authoring is the architect's responsibility post-T-016.
+
+Files changed: `Arbor Spec/12 Open Questions & Decisions Log.md`, `Arbor Spec/23 Tickets/T-016 Pipeline Eval Harness.md`.

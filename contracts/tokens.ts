@@ -35,6 +35,9 @@ export const lightTheme = {
   graphBg:       '#FAFAF9',   // graph canvas — warm off-white
   nodeOutline:   '#333333',   // dark node outline for contrast
 
+  minimapMask:   'rgba(0, 0, 0, 0.08)',   // minimap overlay — subtle darken
+  shadowLight:   'rgba(0, 0, 0, 0.06)',   // card hover shadow
+
   progressTrack: '#d0d0d0',
   progressFill:  '#2e7d32',   // matches completed green
 } as const;
@@ -69,6 +72,9 @@ export const darkTheme: Theme = {
   graphBg:       '#1a1a1e',   // graph canvas — dark
   nodeOutline:   '#e0e0e0',   // light node outline for contrast on dark
 
+  minimapMask:   'rgba(0, 0, 0, 0.15)',   // minimap overlay — stronger on dark bg
+  shadowLight:   'rgba(0, 0, 0, 0.2)',    // card hover shadow — deeper on dark bg
+
   progressTrack: '#3a3a40',
   progressFill:  '#4caf50',   // matches completed green
 } as const;
@@ -100,6 +106,9 @@ export const tokens = {
     edgeHighlight: lightTheme.edgeHighlight,
     edgeCompleted: lightTheme.edgeCompleted,
     edgeHalo:      lightTheme.edgeHalo,
+
+    minimapMask:   lightTheme.minimapMask,
+    shadowLight:   lightTheme.shadowLight,
 
     focusDimOpacity: 0.12,        // opacity for nodes/edges outside focus set
   },

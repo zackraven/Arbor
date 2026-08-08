@@ -360,7 +360,7 @@ function GraphViewInner({ treeId }: { treeId?: string }) {
             if (status === 'unlocked') return tokens.color.unlocked;
             return tokens.color.locked;
           }}
-          maskColor="rgba(0, 0, 0, 0.08)"
+          maskColor={tokens.color.minimapMask}
           className={styles.minimap}
           pannable
           zoomable
