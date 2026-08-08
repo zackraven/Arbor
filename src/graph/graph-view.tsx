@@ -1,6 +1,6 @@
 import '@xyflow/react/dist/style.css';
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { ReactFlow, ReactFlowProvider, Background, BackgroundVariant, useReactFlow } from '@xyflow/react';
+import { ReactFlow, ReactFlowProvider, Background, BackgroundVariant, MiniMap, useReactFlow } from '@xyflow/react';
 import type { Node, Edge } from '@xyflow/react';
 import { useGraphLoader } from './use-graph-loader';
 import { useGraphStore } from '../state/graph-store';
@@ -91,6 +91,41 @@ function ZoomAnimator({
   return null;
 }
 
+/** Pans the viewport to follow keyboard navigation.
+ *  Skips the very first selectedNodeId (set by ZoomAnimator). */
+function NavigationPanner({
+  layoutCache,
+  selectedNodeId,
+}: {
+  layoutCache: LayoutCache | null;
+  selectedNodeId: string | null;
+}) {
+  const { setCenter, getZoom } = useReactFlow();
+  const isFirstSelection = useRef(true);
+
+  useEffect(() => {
+    if (!layoutCache || !selectedNodeId) {
+      isFirstSelection.current = true;
+      return;
+    }
+    // Skip the initial selection (ZoomAnimator handles that)
+    if (isFirstSelection.current) {
+      isFirstSelection.current = false;
+      return;
+    }
+    const pos = layoutCache.positions.get(selectedNodeId);
+    if (!pos) return;
+    const zoom = getZoom();
+    setCenter(
+      pos.x + tokens.node.elkWidth / 2,
+      pos.y + tokens.node.elkHeight / 2,
+      { zoom, duration: 300 },
+    );
+  }, [selectedNodeId, layoutCache, setCenter, getZoom]);
+
+  return null;
+}
+
 export default function GraphView({ treeId }: { treeId?: string }) {
   return (
     <ReactFlowProvider>
@@ -101,9 +136,39 @@ export default function GraphView({ treeId }: { treeId?: string }) {
 
 function GraphViewInner({ treeId }: { treeId?: string }) {
   const { loading } = useGraphLoader(treeId);
-  const { nodes: graphNodes, edges: graphEdges, unlockStatuses, selectedNodeId, focusSet, selectNode } = useGraphStore();
+  const { nodes: graphNodes, edges: graphEdges, unlockStatuses, selectedNodeId, focusSet, criticalPath, selectNode, navigateUp, navigateDown, navigateLeft, navigateRight } = useGraphStore();
 
   const [layoutCache, setLayoutCache] = useState<LayoutCache | null>(null);
+
+  // Keyboard navigation
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      switch (e.key) {
+        case 'ArrowUp':
+          e.preventDefault();
+          navigateUp();
+          break;
+        case 'ArrowDown':
+          e.preventDefault();
+          navigateDown();
+          break;
+        case 'ArrowLeft':
+          e.preventDefault();
+          navigateLeft();
+          break;
+        case 'ArrowRight':
+          e.preventDefault();
+          navigateRight();
+          break;
+        case 'Escape':
+          e.preventDefault();
+          selectNode(null);
+          break;
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [navigateUp, navigateDown, navigateLeft, navigateRight, selectNode]);
 
   // Phase 1: ELK layout — runs only when graph structure changes (NOT on selection)
   useEffect(() => {
@@ -193,12 +258,12 @@ function GraphViewInner({ treeId }: { treeId?: string }) {
       const edgeInFocus = focusSet === null ||
         (focusSet.has(e.parent_id) && focusSet.has(e.child_id));
 
-      let edgeColor: string = tokens.graph.edgeColor;
+      let edgeColor = 'var(--graph-edge-color)';
       if (edgeInFocus) {
         if (isHighlighted) {
-          edgeColor = tokens.color.edgeHighlight;
+          edgeColor = 'var(--color-unlocked)';
         } else if (sourceStatus === 'completed') {
-          edgeColor = tokens.color.edgeCompleted;
+          edgeColor = 'var(--color-completed)';
         }
       }
 
@@ -215,11 +280,15 @@ function GraphViewInner({ treeId }: { treeId?: string }) {
         opacity = tokens.graph.edgeOpacityDefault;
       }
 
+      const onCriticalPath = criticalPath !== null &&
+        criticalPath.has(e.parent_id) && criticalPath.has(e.child_id);
+
       const data: ArborEdgeData = {
         layerFraction,
         edgeColor,
         opacity,
         highlighted: isHighlighted,
+        onCriticalPath,
       };
 
       return {
@@ -227,11 +296,11 @@ function GraphViewInner({ treeId }: { treeId?: string }) {
         source: e.parent_id,
         target: e.child_id,
         type: 'arbor' as const,
-        zIndex: isHighlighted ? 10 : sourceStatus === 'completed' ? 5 : 0,
+        zIndex: isHighlighted ? 10 : onCriticalPath ? 8 : sourceStatus === 'completed' ? 5 : 0,
         data,
       };
     });
-  }, [graphEdges, unlockStatuses, selectedNodeId, focusSet, layoutCache]);
+  }, [graphEdges, unlockStatuses, selectedNodeId, focusSet, criticalPath, layoutCache]);
 
   // Compute translateExtent from layout bounds + padding
   const translateExtent = useMemo<[[number, number], [number, number]] | undefined>(() => {
@@ -283,7 +352,21 @@ function GraphViewInner({ treeId }: { treeId?: string }) {
           color={tokens.graph.dotGridColor}
           style={{ opacity: tokens.graph.dotGridOpacity }}
         />
+        <MiniMap
+          nodeColor={(node) => {
+            const status = (node.data as ArborNodeData | undefined)?.status;
+            if (status === 'completed') return tokens.color.completed;
+            if (status === 'in_progress') return tokens.color.inProgress;
+            if (status === 'unlocked') return tokens.color.unlocked;
+            return tokens.color.locked;
+          }}
+          maskColor="rgba(0, 0, 0, 0.08)"
+          className={styles.minimap}
+          pannable
+          zoomable
+        />
         <ZoomAnimator layoutCache={layoutCache} unlockStatuses={unlockStatuses} />
+        <NavigationPanner layoutCache={layoutCache} selectedNodeId={selectedNodeId} />
       </ReactFlow>
       <SummaryPanel />
     </div>

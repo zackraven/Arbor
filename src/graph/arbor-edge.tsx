@@ -11,6 +11,8 @@ export interface ArborEdgeData extends Record<string, unknown> {
   opacity: number;
   /** Whether this edge is highlighted (selected node) */
   highlighted: boolean;
+  /** Whether this edge is on the critical path from root to selected node */
+  onCriticalPath: boolean;
 }
 
 export default function ArborEdge({
@@ -20,15 +22,19 @@ export default function ArborEdge({
 }: EdgeProps) {
   const edgeData = data as ArborEdgeData | undefined;
   const layerFraction = edgeData?.layerFraction ?? 0.5;
-  const edgeColor = edgeData?.edgeColor ?? tokens.graph.edgeColor;
+  const edgeColor = edgeData?.edgeColor ?? 'var(--graph-edge-color)';
   const opacity = edgeData?.opacity ?? tokens.graph.edgeOpacityDefault;
   const highlighted = edgeData?.highlighted ?? false;
+  const onCriticalPath = edgeData?.onCriticalPath ?? false;
 
   // Taper: interpolate width from base (thick) to crown (thin)
-  const width = highlighted
-    ? tokens.graph.edgeHighlightWidth
-    : tokens.graph.edgeWidthBase +
-      (tokens.graph.edgeWidthCrown - tokens.graph.edgeWidthBase) * layerFraction;
+  let width = tokens.graph.edgeWidthBase +
+    (tokens.graph.edgeWidthCrown - tokens.graph.edgeWidthBase) * layerFraction;
+  if (highlighted) width = tokens.graph.edgeHighlightWidth;
+  if (onCriticalPath) width = Math.max(width, 2.5);
+
+  const effectiveColor = onCriticalPath ? 'var(--color-selected-ring)' : edgeColor;
+  const effectiveOpacity = onCriticalPath ? 0.7 : opacity;
 
   const haloWidth = width + tokens.graph.edgeHaloExtra * 2;
 
@@ -37,13 +43,15 @@ export default function ArborEdge({
     targetX, targetY, targetPosition,
   });
 
+  const transition = `opacity ${tokens.motion.durationEdgeHighlight} ${tokens.motion.easing}, stroke ${tokens.motion.durationEdgeHighlight} ${tokens.motion.easing}, stroke-width ${tokens.motion.durationEdgeHighlight} ${tokens.motion.easing}`;
+
   return (
     <>
-      {/* Halo — wider stroke in background colour for crossing legibility (skip for highlighted/completed edges) */}
-      {!highlighted && edgeColor === tokens.graph.edgeColor && (
+      {/* Halo — wider stroke in background colour for crossing legibility */}
+      {!highlighted && !onCriticalPath && (
         <path
           d={edgePath}
-          stroke={tokens.color.edgeHalo}
+          stroke="var(--graph-background)"
           strokeWidth={haloWidth}
           fill="none"
           strokeLinecap="round"
@@ -52,14 +60,12 @@ export default function ArborEdge({
       {/* Edge — coloured stroke with opacity */}
       <path
         d={edgePath}
-        stroke={edgeColor}
+        stroke={effectiveColor}
         strokeWidth={width}
         fill="none"
-        opacity={opacity}
+        opacity={effectiveOpacity}
         strokeLinecap="round"
-        style={{
-          transition: `opacity ${tokens.motion.durationEdgeHighlight} ${tokens.motion.easing}, stroke ${tokens.motion.durationEdgeHighlight} ${tokens.motion.easing}`,
-        }}
+        style={{ transition }}
       />
     </>
   );

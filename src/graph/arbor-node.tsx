@@ -17,15 +17,17 @@ export interface ArborNodeData extends Record<string, unknown> {
 export type ArborNodeType = Node<ArborNodeData, 'arbor'>;
 
 const statusColorMap: Record<UnlockStatus, string> = {
-  completed: tokens.color.completed,
-  unlocked: tokens.color.unlocked,
-  in_progress: tokens.color.inProgress,
-  locked: tokens.color.locked,
+  completed: 'var(--color-completed)',
+  unlocked: 'var(--color-unlocked)',
+  in_progress: 'var(--color-in-progress)',
+  locked: 'var(--color-locked)',
 };
 
 const r = tokens.node.diameter / 2;
 const progressArcR = r + tokens.node.progressArcGap;
 const progressArcCircumference = 2 * Math.PI * progressArcR;
+
+const transitionStyle = `${tokens.motion.durationNormal} ${tokens.motion.easing}`;
 
 export default function ArborNode(props: NodeProps<ArborNodeType>) {
   const { label, status, layerIndex } = props.data;
@@ -61,14 +63,6 @@ export default function ArborNode(props: NodeProps<ArborNodeType>) {
     isDimmed ? styles.dimmed : '',
   ].filter(Boolean).join(' ');
 
-  const circleClass = [
-    styles.circle,
-    status === 'completed' ? styles.completed : '',
-    status === 'unlocked' ? styles.unlocked : '',
-    status === 'in_progress' ? styles.inProgress : '',
-    status === 'locked' ? styles.locked : '',
-  ].filter(Boolean).join(' ');
-
   return (
     <>
       <Handle type="target" position={Position.Top} className={styles.handle} />
@@ -83,62 +77,61 @@ export default function ArborNode(props: NodeProps<ArborNodeType>) {
           viewBox={`0 0 ${svgSize} ${svgSize}`}
           className={styles.svgOverlay}
         >
-          {/* Glow rings — unlocked only */}
-          {isUnlocked && (
-            <>
-              <circle
-                cx={cx} cy={cy}
-                r={r + tokens.node.glowRingOuterSize}
-                fill="none"
-                stroke={tokens.color.unlocked}
-                strokeWidth={tokens.node.glowRingWidth}
-                opacity={tokens.node.glowRingOuterOpacity}
-                className={styles.pulse}
-              />
-              <circle
-                cx={cx} cy={cy}
-                r={r + tokens.node.glowRingInnerSize}
-                fill="none"
-                stroke={tokens.color.unlocked}
-                strokeWidth={tokens.node.glowRingWidth}
-                opacity={tokens.node.glowRingInnerOpacity}
-                className={styles.pulse}
-              />
-            </>
-          )}
-          {/* Main circle fill + border */}
+          {/* Glow rings — always rendered, opacity transitions on status change */}
+          <circle
+            cx={cx} cy={cy}
+            r={r + tokens.node.glowRingOuterSize}
+            fill="none"
+            stroke="var(--color-unlocked)"
+            strokeWidth={tokens.node.glowRingWidth}
+            opacity={isUnlocked ? tokens.node.glowRingOuterOpacity : 0}
+            className={isUnlocked ? styles.pulse : undefined}
+            style={{ transition: `opacity ${transitionStyle}` }}
+          />
+          <circle
+            cx={cx} cy={cy}
+            r={r + tokens.node.glowRingInnerSize}
+            fill="none"
+            stroke="var(--color-unlocked)"
+            strokeWidth={tokens.node.glowRingWidth}
+            opacity={isUnlocked ? tokens.node.glowRingInnerOpacity : 0}
+            className={isUnlocked ? styles.pulse : undefined}
+            style={{ transition: `opacity ${transitionStyle}` }}
+          />
+          {/* Main circle fill + border — stroke color transitions */}
           <circle
             cx={cx} cy={cy}
             r={r - tokens.node.borderWidthNum / 2}
-            fill={tokens.color.surface}
+            fill="var(--color-surface)"
             stroke={statusColor}
             strokeWidth={tokens.node.borderWidthNum}
-            className={circleClass}
+            className={styles.circle}
+            style={{ transition: `stroke ${transitionStyle}, fill ${tokens.motion.durationFast} ${tokens.motion.easing}` }}
           />
-          {/* Progress arc — completed status */}
-          {isCompleted && (
-            <circle
-              cx={cx} cy={cy}
-              r={progressArcR}
-              fill="none"
-              stroke={tokens.color.completed}
-              strokeWidth={tokens.node.progressArcWidth}
-              strokeDasharray={`${progressArcCircumference}`}
-              strokeDashoffset="0"
-              strokeLinecap="round"
-              transform={`rotate(-90 ${cx} ${cy})`}
-            />
-          )}
-          {/* Selection ring */}
-          {isSelected && (
-            <circle
-              cx={cx} cy={cy}
-              r={r + 3}
-              fill="none"
-              stroke={tokens.color.selectedRing}
-              strokeWidth={2}
-            />
-          )}
+          {/* Progress arc — always rendered, dashoffset animates on completion */}
+          <circle
+            cx={cx} cy={cy}
+            r={progressArcR}
+            fill="none"
+            stroke="var(--color-completed)"
+            strokeWidth={tokens.node.progressArcWidth}
+            strokeDasharray={`${progressArcCircumference}`}
+            strokeDashoffset={isCompleted ? 0 : progressArcCircumference}
+            strokeLinecap="round"
+            opacity={isCompleted ? 1 : 0}
+            transform={`rotate(-90 ${cx} ${cy})`}
+            style={{ transition: `stroke-dashoffset ${tokens.motion.durationSlow} ${tokens.motion.easing}, opacity ${transitionStyle}` }}
+          />
+          {/* Selection ring — always rendered, opacity transitions */}
+          <circle
+            cx={cx} cy={cy}
+            r={r + 3}
+            fill="none"
+            stroke="var(--color-selected-ring)"
+            strokeWidth={2}
+            opacity={isSelected ? 1 : 0}
+            style={{ transition: `opacity ${tokens.motion.durationFast} ${tokens.motion.easing}` }}
+          />
         </svg>
         <span className={styles.label}>{label}</span>
       </div>

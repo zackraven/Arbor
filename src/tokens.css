@@ -80,6 +80,70 @@
   --progress-ring-fill-color: #2e7d32;
 }
 
+/* ── Dark theme — manual toggle ──────────────────────────────────────── */
+:root[data-theme="dark"] {
+  --color-base: #1a1a1e;
+  --color-surface: #252529;
+  --color-surface-alt: #2e2e33;
+  --color-border: #3a3a40;
+  --color-text-primary: #e8e8e8;
+  --color-text-secondary: #a0a0a0;
+  --color-text-dim: #666666;
+  --color-completed: #4caf50;
+  --color-unlocked: #42a5f5;
+  --color-in-progress: #ff9800;
+  --color-locked: #616161;
+  --color-glow-color: rgba(66, 165, 245, 0.3);
+  --color-selected-ring: #42a5f5;
+  --color-hover-overlay: rgba(255, 255, 255, 0.06);
+  --color-node-outline: #e0e0e0;
+
+  --graph-edge-color: #ffffff;
+  --graph-background: #1a1a1e;
+  --focus-dim-opacity: 0.08;
+
+  --progress-ring-track-color: #3a3a40;
+  --progress-ring-fill-color: #4caf50;
+}
+
+/* System preference — only applies when data-theme="system" or not set */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-base: #1a1a1e;
+    --color-surface: #252529;
+    --color-surface-alt: #2e2e33;
+    --color-border: #3a3a40;
+    --color-text-primary: #e8e8e8;
+    --color-text-secondary: #a0a0a0;
+    --color-text-dim: #666666;
+    --color-completed: #4caf50;
+    --color-unlocked: #42a5f5;
+    --color-in-progress: #ff9800;
+    --color-locked: #616161;
+    --color-glow-color: rgba(66, 165, 245, 0.3);
+    --color-selected-ring: #42a5f5;
+    --color-hover-overlay: rgba(255, 255, 255, 0.06);
+    --color-node-outline: #e0e0e0;
+
+    --graph-edge-color: #ffffff;
+    --graph-background: #1a1a1e;
+    --focus-dim-opacity: 0.08;
+
+    --progress-ring-track-color: #3a3a40;
+    --progress-ring-fill-color: #4caf50;
+  }
+}
+
+:root.theme-transitioning,
+:root.theme-transitioning *,
+:root.theme-transitioning *::before,
+:root.theme-transitioning *::after {
+  transition: background-color 400ms ease, background 400ms ease,
+              color 400ms ease, border-color 400ms ease,
+              fill 400ms ease, stroke 400ms ease,
+              box-shadow 400ms ease !important;
+}
+
 body {
   margin: 0;
   background-color: var(--color-base);

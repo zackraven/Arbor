@@ -39,7 +39,39 @@ export const lightTheme = {
   progressFill:  '#2e7d32',   // matches completed green
 } as const;
 
-export type Theme = typeof lightTheme;
+export type Theme = { [K in keyof typeof lightTheme]: string };
+
+export const darkTheme: Theme = {
+  base:          '#1a1a1e',   // app background — near-black warm
+  surface:       '#252529',   // card / panel / node fill
+  surfaceAlt:    '#2e2e33',   // subtle elevation (hover, active panel)
+  border:        '#3a3a40',   // dividers and outlines
+  textPrimary:   '#e8e8e8',   // primary text — near-white
+  textSecondary: '#a0a0a0',   // secondary / muted text
+  textDim:       '#666666',   // disabled or hint text
+
+  // Node state accents — brighter for dark bg
+  completed:     '#4caf50',   // green — brighter for dark bg
+  unlocked:      '#42a5f5',   // blue — brighter for dark bg
+  inProgress:    '#ff9800',   // amber/orange — brighter for dark bg
+  locked:        '#616161',   // muted gray
+
+  glowColor:     'rgba(66, 165, 245, 0.3)',   // unlocked blue at 30%
+  glowRadius:    '10px',
+
+  selectedRing:  '#42a5f5',   // matches unlocked blue
+  hoverOverlay:  'rgba(255, 255, 255, 0.06)',  // subtle hover lighten on dark bg
+
+  edge:          '#ffffff',   // edge stroke — white for visibility on dark bg
+  edgeHighlight: '#42a5f5',   // edge stroke when connected to selected node
+  edgeCompleted: '#4caf50',   // edge stroke from completed child to parent
+  edgeHalo:      '#1a1a1e',   // edge halo — matches dark background
+  graphBg:       '#1a1a1e',   // graph canvas — dark
+  nodeOutline:   '#e0e0e0',   // light node outline for contrast on dark
+
+  progressTrack: '#3a3a40',
+  progressFill:  '#4caf50',   // matches completed green
+} as const;
 
 export const tokens = {
   // ── Semantic colour tokens — values come from the active theme ────
