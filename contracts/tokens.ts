@@ -8,7 +8,7 @@
 // Semantic token names are stable across themes.
 
 export const lightTheme = {
-  base:          '#f5f5f5',   // app background — light warm gray
+  base:          '#FAFAF9',   // app background — warm off-white
   surface:       '#ffffff',   // card / panel / node fill
   surfaceAlt:    '#ebebeb',   // subtle elevation (hover, active panel)
   border:        '#c0c0c0',   // dividers and outlines
@@ -31,8 +31,8 @@ export const lightTheme = {
   edge:          '#a0a0a0',   // edge stroke — base colour (opacity applied separately)
   edgeHighlight: '#1565c0',   // edge stroke when connected to selected node
   edgeCompleted: '#2e7d32',   // edge stroke from completed child to parent
-  edgeHalo:      '#f5f5f5',   // edge halo — matches graph background for crossing legibility
-  graphBg:       '#f5f5f5',   // graph canvas — matches base
+  edgeHalo:      '#FAFAF9',   // edge halo — matches graph background for crossing legibility
+  graphBg:       '#FAFAF9',   // graph canvas — warm off-white
   nodeOutline:   '#333333',   // dark node outline for contrast
 
   progressTrack: '#d0d0d0',
@@ -68,6 +68,8 @@ export const tokens = {
     edgeHighlight: lightTheme.edgeHighlight,
     edgeCompleted: lightTheme.edgeCompleted,
     edgeHalo:      lightTheme.edgeHalo,
+
+    focusDimOpacity: 0.12,        // opacity for nodes/edges outside focus set
   },
 
   spacing: {
@@ -84,6 +86,16 @@ export const tokens = {
     durationFast:   '120ms',
     durationNormal: '200ms',
     durationSlow:   '350ms',
+    durationFocus:  '200ms',     // focus dim fade in/out
+    durationHover:  '150ms',     // hover scale transition
+    durationEdgeHighlight: '200ms', // edge highlight fade in
+    // ── Staggered rise on load ───────────────────────────────────
+    riseStagger:    20,          // ms delay per layer
+    riseDuration:   '400ms',     // total animation duration per node
+    riseEasing:     'cubic-bezier(0.0, 0, 0.2, 1)', // decelerate
+    // ── Hover ────────────────────────────────────────────────────
+    hoverScale:     1.04,
+    hoverEasing:    'ease-out',
     easing:         'cubic-bezier(0.4, 0, 0.2, 1)',  // material standard
   },
 
@@ -115,6 +127,7 @@ export const tokens = {
   node: {
     diameter:       65,     // px — circle diameter (fits ~3 lines of 9px text)
     borderWidth:    '1.5px',
+    borderWidthNum: 1.5,    // numeric for SVG stroke calculations
     // Label placement: INSIDE the circle, centered
     labelFontSize:  '9px',  // readable inside circle
     labelLineHeight: 1.2,   // unitless — tight for circles
@@ -123,6 +136,19 @@ export const tokens = {
     // Nodes are circles so ELK width = ELK height = diameter.
     elkWidth:       65,     // px — fed to ELK as node width
     elkHeight:      65,     // px — fed to ELK as node height
+    // ── Progress arc (completed status) ─────────────────────────
+    progressArcWidth: 2.5,  // px — stroke width for completion ring
+    progressArcGap:   3,    // px — gap between node border and progress arc
+    // ── Glow rings (unlocked status) ────────────────────────────
+    glowRingInnerSize:    4,    // px beyond circle radius
+    glowRingOuterSize:    10,   // px beyond circle radius
+    glowRingInnerOpacity: 0.2,
+    glowRingOuterOpacity: 0.08,
+    glowRingWidth:        1.5,  // px — stroke width of glow rings
+    // ── Pulse animation (unlocked status) ───────────────────────
+    pulseDuration:    '3s',
+    pulseMinOpacity:  0.4,
+    pulseMaxOpacity:  0.7,
   },
 
   graph: {
@@ -138,6 +164,11 @@ export const tokens = {
     edgeOpacityLocked:    0.2, // edges into locked territory — dim
     edgeAnimated:  false,      // no animated dashes by default
     background:    lightTheme.graphBg,
+    // ── Dot grid — grounds the canvas without competing ────────
+    dotGridSpacing: 24,        // px — gap between dots
+    dotGridOpacity: 0.04,      // ~4% — subtle
+    dotGridSize:    1,         // px — dot radius
+    dotGridColor:   '#000000', // black at 4% opacity = very faint
     minimap:       false,      // off by default; enable per user pref
   },
 

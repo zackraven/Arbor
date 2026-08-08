@@ -57,6 +57,9 @@ export default function ArborEdge({
         fill="none"
         opacity={opacity}
         strokeLinecap="round"
+        style={{
+          transition: `opacity ${tokens.motion.durationEdgeHighlight} ${tokens.motion.easing}, stroke ${tokens.motion.durationEdgeHighlight} ${tokens.motion.easing}`,
+        }}
       />
     </>
   );

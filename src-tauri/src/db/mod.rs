@@ -86,17 +86,17 @@ pub fn open_or_init_memory() -> Result<rusqlite::Connection, DbError> {
 }
 
 fn migrations_dir_path() -> std::path::PathBuf {
-    // CARGO_MANIFEST_DIR is available at compile time in test/dev builds.
-    // In production (release without the env var), fall back to exe-relative.
-    #[cfg(feature = "app")]
+    // CARGO_MANIFEST_DIR is available at compile time in dev/test builds.
+    // In production (release), fall back to exe-relative path.
+    #[cfg(debug_assertions)]
+    {
+        std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("migrations")
+    }
+    #[cfg(not(debug_assertions))]
     {
         let exe = std::env::current_exe().unwrap_or_default();
         exe.parent()
             .unwrap_or_else(|| std::path::Path::new("."))
             .join("migrations")
-    }
-    #[cfg(not(feature = "app"))]
-    {
-        std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("migrations")
     }
 }

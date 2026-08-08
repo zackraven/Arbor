@@ -1,59 +1,110 @@
-.node {
+.nodeWrapper {
   width: var(--node-diameter);
   height: var(--node-diameter);
-  border-radius: 50%;
-  border: var(--node-border-width) solid var(--color-locked);
-  background: var(--color-surface);
-  padding: var(--spacing-xs);
-  box-sizing: border-box;
-  overflow: hidden;
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  text-align: center;
-  transition: background var(--motion-duration-fast) var(--motion-easing);
+  transition:
+    opacity var(--motion-duration-focus) var(--motion-easing),
+    transform var(--motion-duration-hover) var(--motion-hover-easing);
 }
 
-.node:hover {
-  background: var(--color-surface-alt);
+/* Hover: subtle scale-up */
+.nodeWrapper:hover {
+  transform: scale(var(--motion-hover-scale));
 }
 
-.completed {
-  border-color: var(--color-completed);
-  color: var(--color-text-primary);
+.nodeWrapper:hover .circle {
+  fill: var(--color-surface-alt);
 }
 
-.unlocked {
-  border-color: var(--color-unlocked);
-  color: var(--color-text-primary);
-  box-shadow: 0 0 var(--color-glow-radius) var(--color-glow-color);
+/* Staggered rise animation — delay set via inline style */
+@keyframes nodeRise {
+  from {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
-.inProgress {
-  border-color: var(--color-in-progress);
-  color: var(--color-text-primary);
+.rising {
+  opacity: 0;
+  animation: nodeRise var(--motion-rise-duration) var(--motion-rise-easing) forwards;
 }
 
-.locked {
-  border-color: var(--color-locked);
-  color: var(--color-text-secondary);
+.svgOverlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  overflow: visible;
 }
 
-.selected {
-  outline: 2px solid var(--color-selected-ring);
-  outline-offset: 2px;
+.circle {
+  transition: fill var(--motion-duration-fast) var(--motion-easing);
+}
+
+/* Status classes — available for future per-status styling */
+.completed {}
+.unlocked {}
+.inProgress {}
+.locked {}
+
+.selected {}
+
+.dimmed {
+  opacity: var(--focus-dim-opacity);
+  pointer-events: none;
 }
 
 .label {
+  position: relative;
+  z-index: 1;
   font-size: var(--node-label-font-size);
   line-height: var(--node-label-line-height);
-  color: inherit;
+  color: var(--color-text-primary);
+  text-align: center;
   word-wrap: break-word;
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
-  max-width: 100%;
+  max-width: calc(var(--node-diameter) - 12px);
+  padding: 0 2px;
+}
+
+/* Pulse animation for unlocked glow rings — 3s cycle, 0.4→0.7 opacity */
+@keyframes pulse {
+  0%, 100% { opacity: var(--node-pulse-min-opacity); }
+  50% { opacity: var(--node-pulse-max-opacity); }
+}
+
+.pulse {
+  animation: pulse var(--node-pulse-duration) ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nodeWrapper {
+    transition: none;
+  }
+  .nodeWrapper:hover {
+    transform: none;
+  }
+  .circle {
+    transition: none;
+  }
+  .pulse {
+    animation: none;
+  }
+  .rising {
+    animation: none;
+    opacity: 1;
+  }
 }
 
 .handle {

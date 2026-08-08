@@ -1,6 +1,6 @@
 :root {
   /* ── Color ──────────────────────────────────────────────────────────────── */
-  --color-base: #f5f5f5;
+  --color-base: #FAFAF9;
   --color-surface: #ffffff;
   --color-surface-alt: #ebebeb;
   --color-border: #c0c0c0;
@@ -30,6 +30,13 @@
   --motion-duration-fast: 120ms;
   --motion-duration-normal: 200ms;
   --motion-duration-slow: 350ms;
+  --motion-duration-focus: 200ms;
+  --motion-duration-hover: 150ms;
+  --motion-duration-edge-highlight: 200ms;
+  --motion-rise-duration: 400ms;
+  --motion-rise-easing: cubic-bezier(0.0, 0, 0.2, 1);
+  --motion-hover-scale: 1.04;
+  --motion-hover-easing: ease-out;
   --motion-easing: cubic-bezier(0.4, 0, 0.2, 1);
 
   /* ── Typography ──────────────────────────────────────────────────────────── */
@@ -51,6 +58,9 @@
   --node-border-width: 1.5px;
   --node-label-font-size: 9px;
   --node-label-line-height: 1.2;
+  --node-pulse-duration: 3s;
+  --node-pulse-min-opacity: 0.4;
+  --node-pulse-max-opacity: 0.7;
 
   /* ── Graph ───────────────────────────────────────────────────────────────── */
   --graph-edge-color: #a0a0a0;
@@ -60,7 +70,8 @@
   --graph-edge-opacity-completed: 0.6;
   --graph-edge-opacity-default: 0.4;
   --graph-edge-opacity-locked: 0.2;
-  --graph-background: #f5f5f5;
+  --graph-background: #FAFAF9;
+  --focus-dim-opacity: 0.12;
 
   /* ── Progress ring ───────────────────────────────────────────────────────── */
   --progress-ring-size: 40px;
